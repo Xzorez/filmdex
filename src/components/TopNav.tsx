@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type JSX } from 'react'
+import { WindowControls } from './WindowControls'
 import { IconClose, IconSearch, IconSettings } from './icons'
 
 export type View = 'home' | 'collection' | 'wishlist' | 'search' | 'settings'
@@ -83,6 +84,8 @@ export function TopNav({ view, onChange, query, onQuery, scrolled }: Props): JSX
         >
           <IconSettings />
         </button>
+
+        <WindowControls />
       </div>
     </nav>
   )

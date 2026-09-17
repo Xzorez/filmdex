@@ -44,6 +44,19 @@ const api = {
     openDataDir: () => call<void>('app:openDataDir'),
     openExternal: (url: string) => call<void>('app:openExternal', url)
   },
+  window: {
+    minimize: () => call<void>('window:minimize'),
+    toggleMaximize: () => call<boolean>('window:toggleMaximize'),
+    close: () => call<void>('window:close'),
+    isMaximized: () => call<boolean>('window:isMaximized'),
+    onMaximized: (listener: (maximized: boolean) => void): (() => void) => {
+      const wrapped = (_event: unknown, maximized: boolean): void => listener(maximized)
+      ipcRenderer.on('window:maximized', wrapped)
+      return () => {
+        ipcRenderer.removeListener('window:maximized', wrapped)
+      }
+    }
+  },
   updater: {
     state: () => call<UpdateState>('updater:state'),
     check: () => call<UpdateState>('updater:check'),

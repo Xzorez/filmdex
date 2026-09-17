@@ -18,8 +18,11 @@ function createWindow(): void {
     minWidth: 940,
     minHeight: 620,
     show: false,
-    backgroundColor: '#0d0f14',
+    backgroundColor: '#141414',
     title: 'Filmdex',
+    // Sin marco de Windows: la barra de titulo y sus botones los dibuja la
+    // propia interfaz, para que no rompan el conjunto.
+    frame: false,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
@@ -30,6 +33,18 @@ function createWindow(): void {
   })
 
   mainWindow.once('ready-to-show', () => mainWindow?.show())
+
+  // La interfaz necesita saber si esta maximizada para cambiar el icono del
+  // boton y los redondeos.
+  const sendMaximized = (): void => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('window:maximized', mainWindow.isMaximized())
+    }
+  }
+  mainWindow.on('maximize', sendMaximized)
+  mainWindow.on('unmaximize', sendMaximized)
+  mainWindow.on('enter-full-screen', sendMaximized)
+  mainWindow.on('leave-full-screen', sendMaximized)
 
   // Los enlaces externos se abren en el navegador, nunca dentro de la app.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -111,6 +126,20 @@ function registerHandlers(): void {
   handle('app:openExternal', (url: string) => {
     if (url.startsWith('https://')) void shell.openExternal(url)
   })
+
+  handle('window:minimize', () => {
+    mainWindow?.minimize()
+  })
+  handle('window:toggleMaximize', () => {
+    if (!mainWindow) return false
+    if (mainWindow.isMaximized()) mainWindow.unmaximize()
+    else mainWindow.maximize()
+    return mainWindow.isMaximized()
+  })
+  handle('window:close', () => {
+    mainWindow?.close()
+  })
+  handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false)
 
   handle('updater:state', () => currentState())
   handle('updater:check', () => checkForUpdates())

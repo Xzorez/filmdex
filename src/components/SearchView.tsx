@@ -107,11 +107,12 @@ export function SearchView({ query, movies, needsTmdbKey, onOpen, onGoSettings }
 
       {!loading && results.length > 0 && (
         <div className="grid">
-          {results.map((result) => {
+          {results.map((result, position) => {
             const mine = findOwned(owned, result)
             return (
               <Card
                 key={result.sourceId}
+                index={position}
                 title={result.title}
                 year={result.year}
                 posterUrl={result.posterUrl}

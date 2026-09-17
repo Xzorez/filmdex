@@ -12,7 +12,10 @@ Todo se guarda **solo en tu ordenador**. No hay cuentas, ni servidores, ni nada 
 - Colección y lista aparte, organizadas en filas (pendientes, mejor puntuadas, por formato) o en rejilla con filtros.
 - Tu propia nota del 1 al 10, marcar como vista con fecha y notas libres por película.
 - Exportar e importar la colección en JSON para tener copia o llevártela a otro equipo.
+- Ventana sin el marco de Windows: la barra de título y los botones de minimizar, maximizar y cerrar los dibuja la propia app.
 - Se actualiza sola: cuando se publica una versión nueva en GitHub, la app la detecta, la descarga y la instala al reiniciar.
+
+Las animaciones (entrada escalonada de las filas, acercamiento lento de la portada, respuesta al pulsar) se desactivan solas si tienes activado *Reducir movimiento* en Windows.
 
 ## Instalar
 

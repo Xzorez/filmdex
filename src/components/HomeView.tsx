@@ -108,6 +108,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
 
         {genre === null && topGenre && (
           <Row
+            index={0}
             title="Recomendadas para ti"
             note={`Porque en tu coleccion abunda ${labelOf(topGenre).toLowerCase()}`}
             loading={forYou.loading}
@@ -118,6 +119,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
         )}
 
         <Row
+          index={1}
           title={genre ? `${labelOf(genre)}: lo mas visto` : 'Populares ahora'}
           loading={popular.loading}
           count={withoutFeature(popular.movies).length}
@@ -126,6 +128,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
         </Row>
 
         <Row
+          index={2}
           title={genre ? `${labelOf(genre)}: mejor valoradas` : 'Mejor valoradas'}
           loading={rated.loading}
           count={rated.movies.length}
@@ -135,6 +138,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
 
         {genre === null && secondGenre && (
           <Row
+            index={3}
             title={`Mas ${labelOf(secondGenre).toLowerCase()} para ti`}
             loading={second.loading}
             count={unseen(second.movies).length}

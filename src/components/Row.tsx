@@ -1,4 +1,4 @@
-import { useRef, type JSX, type ReactNode } from 'react'
+import { useRef, type CSSProperties, type JSX, type ReactNode } from 'react'
 import { IconChevronLeft, IconChevronRight } from './icons'
 
 interface Props {
@@ -8,10 +8,12 @@ interface Props {
   children: ReactNode
   /** Cuantas tarjetas hay: sin ninguna, la fila no se pinta. */
   count: number
+  /** Posicion de la fila, para que entren una detras de otra. */
+  index?: number
 }
 
 /** Carrusel horizontal con flechas que aparecen al pasar por encima. */
-export function Row({ title, note, loading, children, count }: Props): JSX.Element | null {
+export function Row({ title, note, loading, children, count, index = 0 }: Props): JSX.Element | null {
   const track = useRef<HTMLDivElement>(null)
 
   if (!loading && count === 0) return null
@@ -24,7 +26,7 @@ export function Row({ title, note, loading, children, count }: Props): JSX.Eleme
   }
 
   return (
-    <section className="row">
+    <section className="row" style={{ '--i': index } as CSSProperties}>
       <div className="row-head">
         <h2 className="row-title">{title}</h2>
         {note && <span className="row-note">{note}</span>}
@@ -32,8 +34,8 @@ export function Row({ title, note, loading, children, count }: Props): JSX.Eleme
 
       {loading ? (
         <div className="skeleton-row">
-          {Array.from({ length: 8 }, (_, index) => (
-            <div key={index} className="skeleton-card" />
+          {Array.from({ length: 8 }, (_, slot) => (
+            <div key={slot} className="skeleton-card" />
           ))}
         </div>
       ) : (

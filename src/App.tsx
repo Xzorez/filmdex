@@ -223,6 +223,7 @@ export function App(): JSX.Element {
       )}
 
       <div className="scroll" ref={scroller}>
+        <div className="view-enter" key={view}>
         {view === 'home' && (
           <HomeView
             movies={movies}
@@ -283,6 +284,7 @@ export function App(): JSX.Element {
             />
           </div>
         )}
+        </div>
       </div>
 
       {sheet && (

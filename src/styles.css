@@ -94,6 +94,16 @@ button {
   z-index: 50;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
   transition: background-color 0.3s var(--ease);
+  /* La barra entera hace de zona de arrastre de la ventana. */
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+/* Todo lo que se pulsa o se escribe tiene que quedar fuera del arrastre. */
+.nav button,
+.nav input,
+.nav .nav-search {
+  -webkit-app-region: no-drag;
 }
 
 .nav.solid {
@@ -210,6 +220,43 @@ button {
   stroke-width: 1.7;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* ---------- Botones de la ventana ---------- */
+
+.win-controls {
+  display: flex;
+  align-items: stretch;
+  align-self: stretch;
+  /* Pegados al borde, como en cualquier ventana de Windows. */
+  margin: 0 calc(var(--gutter) * -1) 0 6px;
+}
+
+.win-btn {
+  width: 46px;
+  display: grid;
+  place-items: center;
+  color: var(--text-dim);
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.win-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.win-btn.danger:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+.win-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.1;
+  shape-rendering: crispEdges;
 }
 
 /* ---------- Portada ---------- */
@@ -347,7 +394,7 @@ button {
   font-weight: 600;
   font-size: 14.5px;
   white-space: nowrap;
-  transition: background 0.15s var(--ease), opacity 0.15s var(--ease);
+  transition: background 0.15s var(--ease), opacity 0.15s var(--ease), transform 0.09s var(--ease);
 }
 
 .btn:hover:not(:disabled) {
@@ -751,6 +798,101 @@ button {
   transform: scale(1.05);
 }
 
+/* ---------- Movimiento ---------- */
+
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Un acercamiento muy lento en la portada: se nota sin llamar la atencion. */
+@keyframes hero-drift {
+  from {
+    transform: scale(1.07);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.view-enter {
+  animation: enter-fade 0.32s var(--ease) both;
+}
+
+/* Las filas llegan una detras de otra, no todas de golpe. */
+.row {
+  animation: enter-up 0.5s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 65ms);
+}
+
+.hero-art img {
+  animation: hero-drift 16s ease-out both;
+}
+
+.hero-kicker {
+  animation: enter-up 0.55s var(--ease) both;
+  animation-delay: 0.04s;
+}
+.hero-title {
+  animation: enter-up 0.55s var(--ease) both;
+  animation-delay: 0.1s;
+}
+.hero-facts {
+  animation: enter-up 0.55s var(--ease) both;
+  animation-delay: 0.16s;
+}
+.hero-overview {
+  animation: enter-up 0.55s var(--ease) both;
+  animation-delay: 0.22s;
+}
+.hero-actions {
+  animation: enter-up 0.55s var(--ease) both;
+  animation-delay: 0.28s;
+}
+
+.genre-bar {
+  animation: enter-up 0.45s var(--ease) both;
+}
+
+.grid .card {
+  animation: enter-up 0.4s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 18ms);
+}
+
+/* Al pulsar, el boton cede un poco: da sensacion de tacto. */
+.btn:active:not(:disabled),
+.chip:active,
+.win-btn:active,
+.icon-btn:active {
+  transform: scale(0.97);
+}
+
+.btn,
+.chip {
+  transform: scale(1);
+}
+
+/* Quien prefiera menos movimiento no ve ninguno. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ---------- Estados ---------- */
 
 .empty {
@@ -859,12 +1001,12 @@ button {
   box-shadow: 0 16px 60px rgba(0, 0, 0, 0.85);
   width: min(860px, 100%);
   overflow: hidden;
-  animation: rise 0.2s var(--ease);
+  animation: rise 0.26s var(--ease);
 }
 
 @keyframes rise {
   from {
-    transform: translateY(14px) scale(0.99);
+    transform: translateY(18px) scale(0.975);
     opacity: 0;
   }
 }

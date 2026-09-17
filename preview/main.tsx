@@ -446,6 +446,13 @@ window.filmdex = {
     openDataDir: () => wait(undefined),
     openExternal: () => wait(undefined)
   },
+  window: {
+    minimize: () => wait(undefined),
+    toggleMaximize: () => wait(false),
+    close: () => wait(undefined),
+    isMaximized: () => wait(false),
+    onMaximized: () => () => undefined
+  },
   updater: {
     state: () => wait({ status: 'none' } as UpdateState),
     check: () => wait({ status: 'none' } as UpdateState),

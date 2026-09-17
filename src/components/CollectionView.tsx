@@ -55,9 +55,10 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
     })
   }, [scoped, query, format, sort])
 
-  const toCard = (movie: Movie): JSX.Element => (
+  const toCard = (movie: Movie, position = 0): JSX.Element => (
     <Card
       key={movie.id}
+      index={position}
       title={movie.title}
       year={movie.year}
       posterUrl={movie.posterUrl}
@@ -153,21 +154,21 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
             <p>Ninguna pelicula encaja con ese filtro.</p>
           </div>
         ) : (
-          <div className="grid">{filtered.map(toCard)}</div>
+          <div className="grid">{filtered.map((movie, position) => toCard(movie, position))}</div>
         )
       ) : (
         <div className="rows">
-          <Row title="Pendientes de ver" count={pending.length}>
+          <Row index={0} title="Pendientes de ver" count={pending.length}>
             {pending.map(toCard)}
           </Row>
-          <Row title="Tus mejores notas" count={best.length}>
+          <Row index={1} title="Tus mejores notas" count={best.length}>
             {best.map(toCard)}
           </Row>
-          <Row title="Anadidas hace poco" count={recent.length}>
+          <Row index={2} title="Anadidas hace poco" count={recent.length}>
             {recent.map(toCard)}
           </Row>
-          {byFormat.map((group) => (
-            <Row key={group.format} title={`En ${group.format}`} count={group.list.length}>
+          {byFormat.map((group, position) => (
+            <Row key={group.format} index={3 + position} title={`En ${group.format}`} count={group.list.length}>
               {group.list.map(toCard)}
             </Row>
           ))}
