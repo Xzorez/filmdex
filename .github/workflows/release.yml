@@ -24,7 +24,49 @@ jobs:
 
       - run: npm ci
 
+      # electron-builder lanza un publicador por artefacto y, si la publicacion
+      # todavia no existe, todos intentan crearla a la vez: se pisan y alguno
+      # pierde su fichero por el camino. Creandola antes en borrador, cada
+      # publicador se limita a subir lo suyo.
+      - name: Preparar la publicacion
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          if gh release view "v$VERSION" > /dev/null 2>&1; then
+            echo "La publicacion v$VERSION ya existe; se reutiliza."
+          else
+            gh release create "v$VERSION" \
+              --draft \
+              --title "Filmdex v$VERSION" \
+              --generate-notes
+          fi
+
       - name: Compilar y publicar
         run: npm run release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Sin el instalador y sin latest.yml la actualizacion automatica no
+      # funciona, asi que se comprueba antes de dar la version por buena.
+      - name: Comprobar que estan todos los ficheros
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ASSETS=$(gh release view "v$VERSION" --json assets --jq '.assets[].name')
+          echo "$ASSETS"
+          for required in "Filmdex-$VERSION-setup.exe" "latest.yml"; do
+            if ! echo "$ASSETS" | grep -qx "$required"; then
+              echo "::error::Falta $required en la publicacion v$VERSION"
+              exit 1
+            fi
+          done
+
+      - name: Hacer visible la publicacion
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "v$VERSION" --draft=false --latest
