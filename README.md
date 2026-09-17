@@ -36,7 +36,7 @@ Si Wikidata o Wikipedia no conocen una película, la ficha se guarda igual con l
 
 Los títulos ya traducidos se guardan en `titles-cache.json`, junto a la colección. El endpoint público de Wikidata es compartido y su latencia va de un segundo a más de un minuto sin avisar, así que la app recuerda lo resuelto — incluido lo que no tiene traducción — y corta cualquier consulta que pase de seis segundos. Con la caché caliente, la pantalla de inicio carga en decenas de milisegundos.
 
-El catálogo de Cinemeta va sobre todo de cine reciente, así que descubrir sirve para «qué ver ahora» más que para rescatar clásicos. Para eso está la búsqueda, que sí llega al fondo del catálogo.
+El catálogo de Cinemeta va sobre todo de cine reciente, así que descubrir sirve para «qué ver ahora» más que para rescatar clásicos. Para eso está la búsqueda, que sí llega al fondo del catálogo — o la fuente TMDB, cuyo `discover` cubre toda la historia del cine y llena **Mejor valoradas** de clásicos.
 
 **TMDB** (opcional). Da títulos de estreno y sinopsis comerciales, algo más finas que el resumen enciclopédico de Wikipedia. Pide una clave gratuita: cuenta en [themoviedb.org](https://www.themoviedb.org) → **Ajustes → API**, y se pega en Ajustes dentro de Filmdex. Vale la clave v3 o el token v4, y se guarda solo en tu equipo.
 

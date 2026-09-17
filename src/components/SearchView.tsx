@@ -1,6 +1,6 @@
 import { useEffect, useState, type JSX } from 'react'
 import type { Movie, SearchResult } from '../../shared/types'
-import { identityOf, ownedIndex } from '../lib/movie'
+import { findOwned, ownedIndex } from '../lib/movie'
 import { Card } from './Card'
 import { IconSearch, IconSettings } from './icons'
 
@@ -108,7 +108,7 @@ export function SearchView({ query, movies, needsTmdbKey, onOpen, onGoSettings }
       {!loading && results.length > 0 && (
         <div className="grid">
           {results.map((result) => {
-            const mine = owned.get(identityOf(result))
+            const mine = findOwned(owned, result)
             return (
               <Card
                 key={result.sourceId}

@@ -1,6 +1,6 @@
 import { useMemo, type JSX } from 'react'
 import { GENRES, type Movie, type MovieDetails } from '../../shared/types'
-import { identityOf, ownedIndex } from '../lib/movie'
+import { findOwned, ownedIndex } from '../lib/movie'
 import { favouriteGenres, labelOf } from '../lib/taste'
 import { useDiscover } from '../lib/useDiscover'
 import { Card } from './Card'
@@ -41,7 +41,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
   const renderCards = (list: MovieDetails[]): JSX.Element[] =>
     list
       .map((movie) => {
-        const mine = owned.get(identityOf(movie))
+        const mine = findOwned(owned, movie)
         return (
           <Card
             key={movie.sourceId}
@@ -58,7 +58,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
 
   /** Lo que ya tienes no hace falta recomendartelo. */
   const unseen = (list: MovieDetails[]): MovieDetails[] =>
-    list.filter((movie) => !owned.has(identityOf(movie)))
+    list.filter((movie) => !findOwned(owned, movie))
 
   const error = popular.error ?? rated.error
   if (error && !popular.loading && popular.movies.length === 0) {
@@ -81,7 +81,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
       {feature ? (
         <Hero
           movie={feature}
-          owned={owned.get(identityOf(feature)) ?? null}
+          owned={findOwned(owned, feature)}
           onOpen={() => onOpen(feature)}
           onAdd={() => onQuickAdd(feature)}
           busy={busyId === feature.sourceId}

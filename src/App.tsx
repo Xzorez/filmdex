@@ -7,7 +7,7 @@ import { SearchView } from './components/SearchView'
 import { SettingsView } from './components/SettingsView'
 import { TopNav, type View } from './components/TopNav'
 import { IconDownload } from './components/icons'
-import { fromSearchResult, identityOf, ownedIndex, toDetails, toNewMovie } from './lib/movie'
+import { findOwned, fromSearchResult, ownedIndex, toDetails, toNewMovie } from './lib/movie'
 import { clearDiscoverCache } from './lib/useDiscover'
 
 interface Toast {
@@ -187,7 +187,7 @@ export function App(): JSX.Element {
   }
 
   const needsTmdbKey = settings.source === 'tmdb' && settings.tmdbApiKey.trim().length === 0
-  const sheetOwned = sheet ? (owned.get(identityOf(sheet.details)) ?? null) : null
+  const sheetOwned = sheet ? findOwned(owned, sheet.details) : null
   const updateBanner = update.status === 'available' || update.status === 'ready'
 
   return (

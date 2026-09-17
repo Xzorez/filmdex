@@ -1,21 +1,36 @@
 import type { Format, Movie, MovieDetails, NewMovie, SearchResult, Status } from '../../shared/types'
 
+type Identifiable = { imdbId: string | null; tmdbId: number | null }
+
 /**
- * Identidad de una pelicula entre fuentes distintas. Se prefiere el codigo de
- * IMDb porque lo entienden las dos, y se cae al de TMDB cuando no hay otro.
+ * Todas las formas de nombrar una misma pelicula. Hacen falta las dos: el
+ * catalogo de TMDB no trae codigo de IMDb y el de Cinemeta no siempre trae el
+ * de TMDB, asi que una pelicula guardada desde una fuente solo se reconoce en
+ * la otra si se comparan todos sus identificadores.
  */
-export function identityOf(movie: { imdbId: string | null; tmdbId: number | null }): string {
-  return movie.imdbId ?? (movie.tmdbId !== null ? `tmdb:${movie.tmdbId}` : '')
+export function identitiesOf(movie: Identifiable): string[] {
+  const ids: string[] = []
+  if (movie.imdbId) ids.push(movie.imdbId)
+  if (movie.tmdbId !== null) ids.push(`tmdb:${movie.tmdbId}`)
+  return ids
 }
 
 /** Indice de lo que ya esta en la coleccion, para marcarlo mientras exploras. */
 export function ownedIndex(movies: Movie[]): Map<string, Movie> {
   const index = new Map<string, Movie>()
   for (const movie of movies) {
-    const key = identityOf(movie)
-    if (key) index.set(key, movie)
+    for (const id of identitiesOf(movie)) index.set(id, movie)
   }
   return index
+}
+
+/** Busca una pelicula del catalogo en la coleccion por cualquiera de sus codigos. */
+export function findOwned(index: Map<string, Movie>, candidate: Identifiable): Movie | null {
+  for (const id of identitiesOf(candidate)) {
+    const found = index.get(id)
+    if (found) return found
+  }
+  return null
 }
 
 /**
