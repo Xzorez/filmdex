@@ -1,4 +1,4 @@
-import type { MovieDetails, SearchResult, Settings } from '../../../shared/types'
+import type { DiscoverQuery, MovieDetails, SearchResult, Settings } from '../../../shared/types'
 import { SourceError } from './errors'
 
 const API = 'https://api.themoviedb.org/3'
@@ -111,4 +111,53 @@ export async function verifyKey(apiKey: string, language: string): Promise<boole
     if (error instanceof SourceError) return false
     throw error
   }
+}
+
+/**
+ * TMDB filtra por identificador numerico de genero, no por nombre. Son fijos y
+ * estan documentados, asi que se mapean desde los nombres comunes de GENRES.
+ * Los que TMDB no tiene se quedan fuera y la lista sale sin filtrar.
+ */
+const TMDB_GENRE_IDS: Record<string, number> = {
+  Action: 28,
+  Adventure: 12,
+  Animation: 16,
+  Comedy: 35,
+  Crime: 80,
+  Documentary: 99,
+  Drama: 18,
+  Family: 10751,
+  Fantasy: 14,
+  History: 36,
+  Horror: 27,
+  Mystery: 9648,
+  Romance: 10749,
+  'Sci-Fi': 878,
+  Thriller: 53,
+  War: 10752,
+  Western: 37
+}
+
+export async function discover(settings: Settings, query: DiscoverQuery): Promise<MovieDetails[]> {
+  const genreId = query.genre ? TMDB_GENRE_IDS[query.genre] : undefined
+  const params: Record<string, string> = {
+    page: '1',
+    include_adult: 'false',
+    sort_by: query.catalog === 'rated' ? 'vote_average.desc' : 'popularity.desc',
+    // Sin un minimo de votos, "mejor valoradas" se llena de rarezas con un voto.
+    'vote_count.gte': query.catalog === 'rated' ? '500' : '0'
+  }
+  if (genreId !== undefined) params.with_genres = String(genreId)
+
+  const data = await request<{ results?: TmdbMovie[] }>(settings, '/discover/movie', params)
+
+  // discover no trae duracion ni reparto: se completan al abrir la ficha.
+  return (data.results ?? []).slice(0, 24).map((raw) => ({
+    ...toSearchResult(raw),
+    backdropUrl: raw.backdrop_path ? `${IMAGES}/w780${raw.backdrop_path}` : null,
+    runtime: null,
+    genres: [],
+    director: null,
+    cast: []
+  }))
 }

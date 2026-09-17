@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
+  DiscoverQuery,
   ImportSummary,
   Movie,
   MovieDetails,
@@ -31,6 +32,7 @@ const api = {
   sources: {
     search: (query: string) => call<SearchResult[]>('sources:search', query),
     details: (source: Source, sourceId: string) => call<MovieDetails>('sources:details', source, sourceId),
+    discover: (query: DiscoverQuery) => call<MovieDetails[]>('sources:discover', query),
     verifyTmdb: (apiKey: string, language: string) => call<boolean>('sources:verifyTmdb', apiKey, language)
   },
   settings: {

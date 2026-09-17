@@ -2,7 +2,7 @@ import type { JSX } from 'react'
 
 type Props = { className?: string }
 
-const wrap = (children: JSX.Element, className = 'nav-icon'): JSX.Element => (
+const wrap = (children: JSX.Element, className?: string): JSX.Element => (
   <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
     {children}
   </svg>
@@ -98,7 +98,34 @@ export const IconFolder = ({ className }: Props): JSX.Element =>
   wrap(<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />, className)
 
 export const IconStar = ({ className }: Props): JSX.Element => (
-  <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+  <svg viewBox="0 0 24 24" className={`solid${className ? ` ${className}` : ''}`} aria-hidden="true">
     <path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.4l6.5-.9z" />
   </svg>
 )
+
+export const IconChevronLeft = ({ className }: Props): JSX.Element =>
+  wrap(<path d="m15 5-7 7 7 7" />, className)
+
+export const IconChevronRight = ({ className }: Props): JSX.Element =>
+  wrap(<path d="m9 5 7 7-7 7" />, className)
+
+export const IconInfo = ({ className }: Props): JSX.Element =>
+  wrap(
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5M12 8h.01" />
+    </>,
+    className
+  )
+
+export const IconPlay = ({ className }: Props): JSX.Element => (
+  <svg viewBox="0 0 24 24" className={`solid${className ? ` ${className}` : ''}`} aria-hidden="true">
+    <path d="M6 4.5v15l13-7.5z" />
+  </svg>
+)
+
+export const IconSparkle = ({ className }: Props): JSX.Element =>
+  wrap(
+    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18" />,
+    className
+  )

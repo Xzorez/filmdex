@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useState, type JSX } from 'react'
-import type { Movie, NewMovie, Settings, UpdateState } from '../shared/types'
-import { AddView } from './components/AddView'
-import { LibraryView } from './components/LibraryView'
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
+import type { Format, Movie, MovieDetails, SearchResult, Settings, Status, UpdateState } from '../shared/types'
+import { CollectionView } from './components/CollectionView'
+import { HomeView } from './components/HomeView'
 import { MovieSheet } from './components/MovieSheet'
+import { SearchView } from './components/SearchView'
 import { SettingsView } from './components/SettingsView'
-import { Sidebar, type View } from './components/Sidebar'
-import { IconDownload, IconPlus } from './components/icons'
+import { TopNav, type View } from './components/TopNav'
+import { IconDownload } from './components/icons'
+import { fromSearchResult, identityOf, ownedIndex, toDetails, toNewMovie } from './lib/movie'
+import { clearDiscoverCache } from './lib/useDiscover'
 
 interface Toast {
   id: number
@@ -13,27 +16,28 @@ interface Toast {
   kind: 'ok' | 'bad'
 }
 
-const TITLES: Record<View, { title: string; sub: string }> = {
-  library: { title: 'Mi coleccion', sub: 'Las peliculas que tienes en casa' },
-  wishlist: { title: 'Quiero verla', sub: 'Lo que te falta por comprar o ver' },
-  add: { title: 'Anadir pelicula', sub: 'Busca por titulo y guardala con su formato' },
-  settings: { title: 'Ajustes', sub: 'Fuente de fichas, copias y actualizaciones' }
-}
+/** Formato con el que se guarda al anadir de un tiron, sin abrir la ficha. */
+const QUICK_FORMAT: Format = 'Blu-ray'
 
 export function App(): JSX.Element {
-  const [view, setView] = useState<View>('library')
+  const [view, setView] = useState<View>('home')
   const [movies, setMovies] = useState<Movie[]>([])
   const [settings, setSettings] = useState<Settings | null>(null)
-  const [selected, setSelected] = useState<Movie | null>(null)
+  const [query, setQuery] = useState('')
+  const [genre, setGenre] = useState<string | null>(null)
+  const [sheet, setSheet] = useState<{ details: MovieDetails; loading: boolean } | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [update, setUpdate] = useState<UpdateState>({ status: 'idle' })
   const [info, setInfo] = useState({ version: '0.0.0', dataDir: '' })
   const [ready, setReady] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const scroller = useRef<HTMLDivElement>(null)
 
   const notify = useCallback((message: string, kind: 'ok' | 'bad' = 'ok'): void => {
     const id = Date.now() + Math.random()
     setToasts((current) => [...current, { id, message, kind }])
-    setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 4000)
+    setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 3600)
   }, [])
 
   const fail = useCallback((message: string): void => notify(message, 'bad'), [notify])
@@ -51,8 +55,6 @@ export function App(): JSX.Element {
         setSettings(stored)
         setInfo(appInfo)
         setUpdate(state)
-        // Con la fuente libre se puede buscar desde el primer arranque; solo
-        // mandamos a Ajustes a quien haya elegido TMDB y no tenga clave.
         if (stored.source === 'tmdb' && !stored.tmdbApiKey.trim()) setView('settings')
       } catch (error) {
         fail((error as Error).message)
@@ -64,21 +66,78 @@ export function App(): JSX.Element {
     return window.filmdex.updater.onState(setUpdate)
   }, [fail])
 
-  const addMovie = async (movie: NewMovie): Promise<void> => {
-    const saved = await window.filmdex.library.add(movie)
-    setMovies((current) => [saved, ...current])
-    notify(`"${saved.title}" anadida a ${saved.status === 'owned' ? 'tu coleccion' : 'tu lista'}`)
+  // La barra se vuelve opaca en cuanto la portada empieza a subir.
+  useEffect(() => {
+    const element = scroller.current
+    if (!element) return
+    const onScroll = (): void => setScrolled(element.scrollTop > 40)
+    element.addEventListener('scroll', onScroll, { passive: true })
+    return () => element.removeEventListener('scroll', onScroll)
+  }, [ready])
+
+  // Cada seccion empieza por arriba.
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 0 })
+  }, [view])
+
+  const owned = ownedIndex(movies)
+
+  /** Abre la ficha y, si faltan datos, los completa sin bloquear. */
+  const openDetails = async (base: MovieDetails, needsFetch: boolean): Promise<void> => {
+    setSheet({ details: base, loading: needsFetch })
+    if (!needsFetch) return
+    try {
+      const full = await window.filmdex.sources.details(base.source, base.sourceId)
+      setSheet((current) =>
+        current && current.details.sourceId === base.sourceId ? { details: full, loading: false } : current
+      )
+    } catch (error) {
+      setSheet((current) => (current ? { ...current, loading: false } : current))
+      fail((error as Error).message)
+    }
+  }
+
+  // Las listas de descubrir vienen completas salvo la sinopsis larga, que solo
+  // se pide al abrir la ficha.
+  const openFromCatalog = (details: MovieDetails): void => {
+    void openDetails(details, true)
+  }
+
+  const openFromSearch = (result: SearchResult): void => {
+    void openDetails(fromSearchResult(result), true)
+  }
+
+  const openFromCollection = (movie: Movie): void => {
+    setSheet({ details: toDetails(movie), loading: false })
+  }
+
+  const addMovie = async (details: MovieDetails, status: Status): Promise<void> => {
+    setBusyId(details.sourceId)
+    try {
+      // Si la ficha aun no esta completa se rellena antes de guardarla, para
+      // que la coleccion no se quede con huecos.
+      const full =
+        details.cast.length === 0 && details.runtime === null
+          ? await window.filmdex.sources.details(details.source, details.sourceId).catch(() => details)
+          : details
+
+      const saved = await window.filmdex.library.add(toNewMovie(full, QUICK_FORMAT, status))
+      setMovies((current) => [saved, ...current])
+      notify(`"${saved.title}" ${status === 'owned' ? 'anadida a tu coleccion' : 'guardada en tu lista'}`)
+    } catch (error) {
+      fail((error as Error).message)
+    } finally {
+      setBusyId(null)
+    }
   }
 
   const patchMovie = (id: string, patch: Partial<Movie>): void => {
-    // Optimista: la ficha responde al instante y el disco se pone al dia despues.
     setMovies((current) => current.map((movie) => (movie.id === id ? { ...movie, ...patch } : movie)))
-    setSelected((current) => (current && current.id === id ? { ...current, ...patch } : current))
     void window.filmdex.library.update(id, patch).catch((error: Error) => fail(error.message))
   }
 
   const deleteMovie = async (movie: Movie): Promise<void> => {
-    setSelected(null)
+    setSheet(null)
     setMovies((current) => current.filter((item) => item.id !== movie.id))
     try {
       await window.filmdex.library.remove(movie.id)
@@ -90,7 +149,10 @@ export function App(): JSX.Element {
 
   const saveSettings = async (patch: Partial<Settings>): Promise<void> => {
     try {
-      setSettings(await window.filmdex.settings.set(patch))
+      const next = await window.filmdex.settings.set(patch)
+      // Cambiar de fuente o de idioma invalida las listas ya cargadas.
+      if (patch.source || patch.language) clearDiscoverCache()
+      setSettings(next)
     } catch (error) {
       fail((error as Error).message)
     }
@@ -98,8 +160,7 @@ export function App(): JSX.Element {
 
   const exportLibrary = async (): Promise<void> => {
     try {
-      const target = await window.filmdex.library.export()
-      if (target) notify('Coleccion exportada')
+      if (await window.filmdex.library.export()) notify('Coleccion exportada')
     } catch (error) {
       fail((error as Error).message)
     }
@@ -118,75 +179,97 @@ export function App(): JSX.Element {
 
   if (!ready || !settings) {
     return (
-      <div className="loading-row" style={{ height: '100%' }}>
+      <div className="loading-row" style={{ height: '100vh' }}>
         <span className="spinner" />
         Abriendo tu coleccion...
       </div>
     )
   }
 
-  const page = TITLES[view]
   const needsTmdbKey = settings.source === 'tmdb' && settings.tmdbApiKey.trim().length === 0
+  const sheetOwned = sheet ? (owned.get(identityOf(sheet.details)) ?? null) : null
+  const updateBanner = update.status === 'available' || update.status === 'ready'
 
   return (
     <div className="app">
-      <Sidebar view={view} onChange={setView} movies={movies} version={info.version} source={settings.source} />
+      <TopNav
+        view={view}
+        onChange={setView}
+        query={query}
+        onQuery={setQuery}
+        scrolled={scrolled || view !== 'home'}
+      />
 
-      <div className="main">
-        {(update.status === 'available' || update.status === 'ready') && view !== 'settings' && (
-          <div className="banner">
-            <IconDownload className="nav-icon" />
-            <span>
-              {update.status === 'ready'
-                ? `La version ${update.version} esta lista para instalarse.`
-                : `Hay una version nueva de Filmdex (${update.version}).`}
-            </span>
-            <span className="spacer" />
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() =>
-                void (update.status === 'ready'
-                  ? window.filmdex.updater.install()
-                  : window.filmdex.updater.download())
-              }
-            >
-              {update.status === 'ready' ? 'Reiniciar e instalar' : 'Descargar'}
-            </button>
-          </div>
+      {updateBanner && (
+        <div className="banner">
+          <IconDownload />
+          <span>
+            {update.status === 'ready'
+              ? `Filmdex ${update.version} esta listo para instalarse.`
+              : `Hay una version nueva de Filmdex (${update.version}).`}
+          </span>
+          <span className="spacer" />
+          <button
+            className="btn btn-light btn-sm"
+            onClick={() =>
+              void (update.status === 'ready'
+                ? window.filmdex.updater.install()
+                : window.filmdex.updater.download())
+            }
+          >
+            {update.status === 'ready' ? 'Reiniciar e instalar' : 'Descargar'}
+          </button>
+        </div>
+      )}
+
+      <div className="scroll" ref={scroller}>
+        {view === 'home' && (
+          <HomeView
+            movies={movies}
+            genre={genre}
+            onGenre={setGenre}
+            onOpen={openFromCatalog}
+            onQuickAdd={(details) => void addMovie(details, 'owned')}
+            busyId={busyId}
+          />
         )}
 
-        <header className="topbar">
-          <div>
-            <h1 className="page-title">{page.title}</h1>
-            <p className="page-sub">{page.sub}</p>
-          </div>
-          <div className="topbar-actions">
-            {view !== 'add' && view !== 'settings' && (
-              <button className="btn btn-primary" onClick={() => setView('add')}>
-                <IconPlus />
-                Anadir
-              </button>
-            )}
-          </div>
-        </header>
+        {view === 'collection' && (
+          <CollectionView
+            movies={movies}
+            status="owned"
+            onOpen={openFromCollection}
+            onDiscover={() => setView('home')}
+          />
+        )}
 
-        <main className="content">
-          {view === 'library' && (
-            <LibraryView movies={movies} status="owned" onOpen={setSelected} onGoAdd={() => setView('add')} />
-          )}
-          {view === 'wishlist' && (
-            <LibraryView movies={movies} status="wishlist" onOpen={setSelected} onGoAdd={() => setView('add')} />
-          )}
-          {view === 'add' && (
-            <AddView
-              movies={movies}
-              needsTmdbKey={needsTmdbKey}
-              onAdd={addMovie}
-              onGoSettings={() => setView('settings')}
-              onError={fail}
-            />
-          )}
-          {view === 'settings' && (
+        {view === 'wishlist' && (
+          <CollectionView
+            movies={movies}
+            status="wishlist"
+            onOpen={openFromCollection}
+            onDiscover={() => setView('home')}
+          />
+        )}
+
+        {view === 'search' && (
+          <SearchView
+            query={query}
+            movies={movies}
+            needsTmdbKey={needsTmdbKey}
+            onOpen={openFromSearch}
+            onGoSettings={() => setView('settings')}
+          />
+        )}
+
+        {view === 'settings' && (
+          <div className="page">
+            <div className="page-head">
+              <div>
+                <h1 className="page-title">Ajustes</h1>
+                <p className="page-sub">Fuente de fichas, copias y actualizaciones</p>
+              </div>
+            </div>
             <SettingsView
               settings={settings}
               onSave={saveSettings}
@@ -198,14 +281,18 @@ export function App(): JSX.Element {
               onExport={() => void exportLibrary()}
               onNotify={notify}
             />
-          )}
-        </main>
+          </div>
+        )}
       </div>
 
-      {selected && (
+      {sheet && (
         <MovieSheet
-          movie={selected}
-          onClose={() => setSelected(null)}
+          details={sheet.details}
+          owned={sheetOwned}
+          loading={sheet.loading}
+          busy={busyId === sheet.details.sourceId}
+          onClose={() => setSheet(null)}
+          onAdd={(status) => void addMovie(sheet.details, status)}
           onPatch={patchMovie}
           onDelete={(movie) => void deleteMovie(movie)}
         />

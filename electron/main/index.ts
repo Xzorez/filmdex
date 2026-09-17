@@ -1,8 +1,9 @@
 import { BrowserWindow, app, dialog, ipcMain, session, shell } from 'electron'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import type { Movie, NewMovie, Settings, Source } from '../../shared/types'
+import type { DiscoverQuery, Movie, NewMovie, Settings, Source } from '../../shared/types'
 import * as sources from './providers'
+import * as titleCache from './providers/title-cache'
 import { SourceError } from './providers'
 import * as store from './store'
 import { checkForUpdates, currentState, downloadUpdate, initUpdater, installUpdate } from './updater'
@@ -99,6 +100,7 @@ function registerHandlers(): void {
   handle('sources:details', async (source: Source, sourceId: string) =>
     sources.details(await store.getSettings(), source, sourceId)
   )
+  handle('sources:discover', async (query: DiscoverQuery) => sources.discover(await store.getSettings(), query))
   handle('sources:verifyTmdb', (apiKey: string, language: string) => sources.verifyTmdbKey(apiKey, language))
 
   handle('settings:get', () => store.getSettings())
@@ -162,5 +164,11 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
+  })
+
+  // La cache de titulos se guarda en diferido: al salir puede quedar algo sin
+  // volcar, asi que se fuerza aqui.
+  app.on('before-quit', () => {
+    void titleCache.flush()
   })
 }

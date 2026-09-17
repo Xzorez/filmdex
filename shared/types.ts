@@ -81,6 +81,36 @@ export interface MovieDetails extends SearchResult {
   cast: string[]
 }
 
+/** Generos comunes a las dos fuentes, con su nombre en espanol para la interfaz. */
+export const GENRES: { id: string; label: string }[] = [
+  { id: 'Action', label: 'Accion' },
+  { id: 'Adventure', label: 'Aventura' },
+  { id: 'Animation', label: 'Animacion' },
+  { id: 'Comedy', label: 'Comedia' },
+  { id: 'Crime', label: 'Crimen' },
+  { id: 'Documentary', label: 'Documental' },
+  { id: 'Drama', label: 'Drama' },
+  { id: 'Family', label: 'Familiar' },
+  { id: 'Fantasy', label: 'Fantasia' },
+  { id: 'History', label: 'Historia' },
+  { id: 'Horror', label: 'Terror' },
+  { id: 'Mystery', label: 'Misterio' },
+  { id: 'Romance', label: 'Romance' },
+  { id: 'Sci-Fi', label: 'Ciencia ficcion' },
+  { id: 'Thriller', label: 'Thriller' },
+  { id: 'War', label: 'Belica' },
+  { id: 'Western', label: 'Western' }
+]
+
+/** Que lista pedir al descubrir: las que mas suenan o las mejor puntuadas. */
+export type Catalog = 'popular' | 'rated'
+
+export interface DiscoverQuery {
+  catalog: Catalog
+  /** Identificador de genero de GENRES, o null para no filtrar. */
+  genre: string | null
+}
+
 export interface UpdateState {
   status: 'idle' | 'checking' | 'available' | 'downloading' | 'ready' | 'none' | 'error'
   version?: string
