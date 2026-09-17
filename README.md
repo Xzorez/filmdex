@@ -6,7 +6,7 @@ Todo se guarda **solo en tu ordenador**. No hay cuentas, ni servidores, ni nada 
 
 ## Qué hace
 
-- Búsqueda por título contra The Movie Database, con carátula, año, duración, director, reparto y sinopsis en español.
+- Búsqueda por título con carátula, año, duración, director, reparto y sinopsis en español. **Sin cuentas ni claves**: funciona nada más instalarla.
 - Colección y lista de deseos separadas, con filtros por formato y por vistas/pendientes.
 - Tu propia nota del 1 al 10, marcar como vista (con fecha) y notas libres por película.
 - Exportar e importar la colección en JSON para tener copia o llevártela a otro equipo.
@@ -18,15 +18,21 @@ Descarga el instalador `.exe` más reciente desde [Releases](https://github.com/
 
 A partir de ahí no hay que volver a descargar nada: la propia app avisa de las versiones nuevas.
 
-## Primer arranque: la clave de TMDB
+## De dónde salen las fichas
 
-Filmdex saca los datos de películas de [The Movie Database](https://www.themoviedb.org). Necesitas una clave gratuita:
+Filmdex trae dos fuentes y se elige en **Ajustes**:
 
-1. Crea una cuenta en themoviedb.org.
-2. Entra en **Ajustes → API** y solicita una clave (uso personal).
-3. Copia la clave y pégala en **Ajustes** dentro de Filmdex.
+**Sin cuenta** (la de serie). No hay que registrarse en ningún sitio. Combina tres servicios públicos:
 
-Vale tanto la clave v3 como el token de lectura v4. Se guarda solo en tu equipo, nunca se envía a ningún otro sitio.
+| Servicio | Aporta |
+| --- | --- |
+| Cinemeta | carátula, fondo, director, reparto, duración y nota de IMDb |
+| Wikidata | el título traducido, cruzando por código de IMDb |
+| Wikipedia | la sinopsis en tu idioma |
+
+Si Wikidata o Wikipedia no conocen una película, la ficha se guarda igual con los datos en inglés en vez de fallar.
+
+**TMDB** (opcional). Da títulos de estreno y sinopsis comerciales, algo más finas que el resumen enciclopédico de Wikipedia. Pide una clave gratuita: cuenta en [themoviedb.org](https://www.themoviedb.org) → **Ajustes → API**, y se pega en Ajustes dentro de Filmdex. Vale la clave v3 o el token v4, y se guarda solo en tu equipo.
 
 ## Desarrollo
 
@@ -47,7 +53,8 @@ Otros comandos:
 ### Estructura
 
 ```
-electron/main/      Proceso principal: ventana, almacenamiento, TMDB, actualizador
+electron/main/      Proceso principal: ventana, almacenamiento y actualizador
+electron/main/providers/  Las dos fuentes de fichas, con una interfaz común
 electron/preload/   Puente seguro entre el interfaz y el proceso principal
 src/                Interfaz en React
 shared/types.ts     Tipos que comparten ambos lados
@@ -68,6 +75,6 @@ Eso sube una etiqueta `vX.Y.Z`, el flujo de [Release](.github/workflows/release.
 
 ## Créditos
 
-Este producto usa la API de TMDB, pero no está avalado ni certificado por TMDB.
+Los datos vienen de Wikipedia, Wikidata, el catálogo Cinemeta de Stremio y, opcionalmente, TMDB. Este producto usa la API de TMDB, pero no está avalado ni certificado por TMDB.
 
 Licencia MIT.

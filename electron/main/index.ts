@@ -1,10 +1,10 @@
 import { BrowserWindow, app, dialog, ipcMain, session, shell } from 'electron'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import type { Movie, NewMovie, Settings } from '../../shared/types'
+import type { Movie, NewMovie, Settings, Source } from '../../shared/types'
+import * as sources from './providers'
+import { SourceError } from './providers'
 import * as store from './store'
-import * as tmdb from './tmdb'
-import { TmdbError } from './tmdb'
 import { checkForUpdates, currentState, downloadUpdate, initUpdater, installUpdate } from './updater'
 
 const isDev = !app.isPackaged
@@ -52,7 +52,7 @@ function handle<A extends unknown[], R>(channel: string, fn: (...args: A) => Pro
     try {
       return { ok: true as const, data: await fn(...(args as A)) }
     } catch (error) {
-      const message = error instanceof TmdbError ? error.message : (error as Error).message
+      const message = error instanceof SourceError ? error.message : (error as Error).message
       return { ok: false as const, error: message || 'Error inesperado' }
     }
   })
@@ -95,10 +95,11 @@ function registerHandlers(): void {
     return store.addMany(incoming)
   })
 
-  handle('tmdb:search', async (query: string) => tmdb.search(await store.getSettings(), query))
-  handle('tmdb:details', async (tmdbId: number) => tmdb.details(await store.getSettings(), tmdbId))
-  handle('tmdb:popular', async () => tmdb.popular(await store.getSettings()))
-  handle('tmdb:verify', (apiKey: string, language: string) => tmdb.verifyKey(apiKey, language))
+  handle('sources:search', async (query: string) => sources.search(await store.getSettings(), query))
+  handle('sources:details', async (source: Source, sourceId: string) =>
+    sources.details(await store.getSettings(), source, sourceId)
+  )
+  handle('sources:verifyTmdb', (apiKey: string, language: string) => sources.verifyTmdbKey(apiKey, language))
 
   handle('settings:get', () => store.getSettings())
   handle('settings:set', (patch: Partial<Settings>) => store.setSettings(patch))
@@ -127,15 +128,17 @@ if (!app.requestSingleInstanceLock()) {
   })
 
   app.whenReady().then(async () => {
-    // En produccion el renderer solo puede cargar lo suyo y las caratulas de TMDB.
-    // En desarrollo se omite porque Vite necesita inyectar scripts para el recargado.
+    // En produccion el renderer solo ejecuta y conecta lo suyo; las imagenes
+    // pueden venir de cualquier https porque cada fuente sirve sus caratulas
+    // desde un dominio distinto. En desarrollo se omite porque Vite necesita
+    // inyectar sus propios scripts para el recargado en caliente.
     if (!isDev) {
       session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
         callback({
           responseHeaders: {
             ...details.responseHeaders,
             'Content-Security-Policy': [
-              "default-src 'self'; img-src 'self' https://image.tmdb.org data:; " +
+              "default-src 'self'; img-src 'self' https: data:; " +
                 "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'"
             ]
           }

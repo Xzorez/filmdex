@@ -3,17 +3,27 @@ export type Format = (typeof FORMATS)[number]
 
 export type Status = 'owned' | 'wishlist'
 
+/**
+ * De donde salen las fichas.
+ * - `libre`: Cinemeta + Wikidata + Wikipedia. No pide cuenta ni clave.
+ * - `tmdb`:  The Movie Database. Mejor calidad, pero exige una clave gratuita.
+ */
+export type Source = 'libre' | 'tmdb'
+
 /** Una pelicula tal y como vive en la coleccion del usuario. */
 export interface Movie {
-  /** Identificador interno estable, independiente de TMDB. */
+  /** Identificador interno estable, independiente de la fuente. */
   id: string
+  source: Source
+  imdbId: string | null
   tmdbId: number | null
   title: string
   originalTitle: string
   year: number | null
   overview: string
-  posterPath: string | null
-  backdropPath: string | null
+  /** URL completa de la caratula; cada fuente usa su propio servidor. */
+  posterUrl: string | null
+  backdropUrl: string | null
   runtime: number | null
   genres: string[]
   director: string | null
@@ -40,26 +50,31 @@ export interface Library {
 }
 
 export interface Settings {
+  source: Source
   tmdbApiKey: string
   language: string
   region: string
   autoUpdate: boolean
 }
 
-/** Resultado resumido de una busqueda en TMDB. */
+/** Resultado resumido de una busqueda, ya normalizado venga de donde venga. */
 export interface SearchResult {
-  tmdbId: number
+  source: Source
+  /** Identificador dentro de su fuente: numero de TMDB o codigo de IMDb. */
+  sourceId: string
+  imdbId: string | null
+  tmdbId: number | null
   title: string
   originalTitle: string
   year: number | null
   overview: string
-  posterPath: string | null
+  posterUrl: string | null
   voteAverage: number | null
 }
 
-/** Ficha completa de TMDB, ya normalizada para la app. */
+/** Ficha completa, ya normalizada para la app. */
 export interface MovieDetails extends SearchResult {
-  backdropPath: string | null
+  backdropUrl: string | null
   runtime: number | null
   genres: string[]
   director: string | null

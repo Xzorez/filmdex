@@ -1,7 +1,6 @@
 import { useEffect, useState, type JSX } from 'react'
 import { FORMATS, type Format, type Movie, type Status } from '../../shared/types'
 import { dateLabel, runtimeLabel } from '../lib/format'
-import { backdropUrl, posterUrl } from '../lib/tmdb-images'
 import { Poster } from './Poster'
 import { Rating } from './Rating'
 import { IconClose, IconTrash } from './icons'
@@ -26,8 +25,6 @@ export function MovieSheet({ movie, onClose, onPatch, onDelete }: Props): JSX.El
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const poster = posterUrl(movie.posterPath, 'w500')
-  const backdrop = backdropUrl(movie.backdropPath) ?? posterUrl(movie.backdropPath)
   const runtime = runtimeLabel(movie.runtime)
 
   const meta = [movie.year, runtime, movie.director].filter(Boolean).join('  ·  ')
@@ -42,7 +39,7 @@ export function MovieSheet({ movie, onClose, onPatch, onDelete }: Props): JSX.El
     <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <div className="sheet">
         <div className="sheet-backdrop">
-          {backdrop && <img src={backdrop} alt="" />}
+          {movie.backdropUrl && <img src={movie.backdropUrl} alt="" />}
           <button className="sheet-close" onClick={onClose} title="Cerrar (Esc)">
             <IconClose />
           </button>
@@ -51,7 +48,7 @@ export function MovieSheet({ movie, onClose, onPatch, onDelete }: Props): JSX.El
         <div className="sheet-body">
           <div>
             <div className="sheet-poster">
-              <Poster url={poster} title={movie.title} />
+              <Poster url={movie.posterUrl} title={movie.title} />
             </div>
             {movie.genres.length > 0 && (
               <div className="chip-row" style={{ marginTop: 14 }}>

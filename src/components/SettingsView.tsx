@@ -1,5 +1,5 @@
 import { useState, type JSX } from 'react'
-import type { Movie, Settings, UpdateState } from '../../shared/types'
+import type { Movie, Settings, Source, UpdateState } from '../../shared/types'
 import { IconCheck, IconDownload, IconFolder, IconRefresh, IconUpload } from './icons'
 
 interface Props {
@@ -13,6 +13,21 @@ interface Props {
   onExport: () => void
   onNotify: (message: string, kind?: 'ok' | 'bad') => void
 }
+
+const SOURCES: { id: Source; title: string; detail: string }[] = [
+  {
+    id: 'libre',
+    title: 'Sin cuenta',
+    detail:
+      'Funciona nada mas instalar. Caratulas y fichas del catalogo de IMDb, con el titulo y la sinopsis traducidos desde Wikipedia. Los generos salen en ingles.'
+  },
+  {
+    id: 'tmdb',
+    title: 'TMDB',
+    detail:
+      'Mejor calidad: titulos de estreno, sinopsis comerciales y fichas mas completas. Necesita una clave gratuita que se pide en dos minutos.'
+  }
+]
 
 export function SettingsView({
   settings,
@@ -29,22 +44,22 @@ export function SettingsView({
   const [checking, setChecking] = useState(false)
   const [verdict, setVerdict] = useState<'ok' | 'bad' | null>(null)
 
-  const owned = movies.filter((m) => m.status === 'owned')
-  const watched = movies.filter((m) => m.watched)
-  const rated = movies.filter((m) => m.rating !== null)
+  const owned = movies.filter((movie) => movie.status === 'owned')
+  const watched = movies.filter((movie) => movie.watched)
+  const rated = movies.filter((movie) => movie.rating !== null)
   const average = rated.length
-    ? (rated.reduce((sum, m) => sum + (m.rating ?? 0), 0) / rated.length).toFixed(1)
+    ? (rated.reduce((sum, movie) => sum + (movie.rating ?? 0), 0) / rated.length).toFixed(1)
     : '-'
 
   const saveKey = async (): Promise<void> => {
     setChecking(true)
     setVerdict(null)
     try {
-      const valid = await window.filmdex.tmdb.verify(apiKey, settings.language)
+      const valid = await window.filmdex.sources.verifyTmdb(apiKey, settings.language)
       setVerdict(valid ? 'ok' : 'bad')
       if (valid) {
-        await onSave({ tmdbApiKey: apiKey })
-        onNotify('Clave guardada. Ya puedes buscar peliculas.')
+        await onSave({ tmdbApiKey: apiKey, source: 'tmdb' })
+        onNotify('Clave guardada. Las fichas vendran ya de TMDB.')
       }
     } catch (error) {
       setVerdict('bad')
@@ -52,6 +67,14 @@ export function SettingsView({
     } finally {
       setChecking(false)
     }
+  }
+
+  const pickSource = async (source: Source): Promise<void> => {
+    if (source === 'tmdb' && !settings.tmdbApiKey.trim()) {
+      onNotify('Primero anade una clave de TMDB aqui debajo.', 'bad')
+      return
+    }
+    await onSave({ source })
   }
 
   const updateLine = ((): string => {
@@ -78,10 +101,38 @@ export function SettingsView({
   return (
     <>
       <div className="panel">
-        <h3>Clave de TMDB</h3>
+        <h3>De donde salen las fichas</h3>
         <p className="hint">
-          Las caratulas, sinopsis y fichas vienen de The Movie Database. Crea una cuenta gratuita, entra en Ajustes -
-          API y copia aqui tu clave (vale la v3 o el token de lectura v4).{' '}
+          Las peliculas que ya tienes guardadas no cambian al cambiar de fuente: esto solo afecta a las que anadas a
+          partir de ahora.
+        </p>
+
+        <div className="source-grid">
+          {SOURCES.map((option) => (
+            <button
+              key={option.id}
+              className={`source-card${settings.source === option.id ? ' active' : ''}`}
+              onClick={() => void pickSource(option.id)}
+            >
+              <div className="source-head">
+                <span className="source-title">{option.title}</span>
+                {settings.source === option.id && (
+                  <span className="source-mark">
+                    <IconCheck />
+                  </span>
+                )}
+              </div>
+              <span className="source-detail">{option.detail}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="section-divider" />
+
+        <h3 style={{ fontSize: 13.5 }}>Clave de TMDB</h3>
+        <p className="hint">
+          Solo hace falta si eliges TMDB. Crea una cuenta gratuita, entra en Ajustes - API y copia aqui la clave (vale
+          la v3 o el token de lectura v4). Se guarda solo en tu equipo.{' '}
           <a onClick={() => void window.filmdex.app.openExternal('https://www.themoviedb.org/settings/api')}>
             Abrir TMDB
           </a>
@@ -97,7 +148,7 @@ export function SettingsView({
               setVerdict(null)
             }}
           />
-          <button className="btn btn-primary" disabled={checking || !apiKey.trim()} onClick={() => void saveKey()}>
+          <button className="btn" disabled={checking || !apiKey.trim()} onClick={() => void saveKey()}>
             {checking ? <span className="spinner" /> : <IconCheck />}
             Comprobar y guardar
           </button>
@@ -195,18 +246,18 @@ export function SettingsView({
 
       <div className="panel">
         <h3>Idioma de las fichas</h3>
-        <p className="hint">Idioma en el que TMDB devuelve titulos y sinopsis.</p>
+        <p className="hint">Idioma en el que se buscan los titulos y las sinopsis.</p>
         <select
           className="select"
           style={{ maxWidth: 240 }}
           value={settings.language}
           onChange={(event) => void onSave({ language: event.target.value })}
         >
-          <option value="es-ES">Espanol (Espana)</option>
-          <option value="es-MX">Espanol (Latinoamerica)</option>
+          <option value="es-ES">Espanol</option>
           <option value="en-US">English</option>
           <option value="fr-FR">Francais</option>
           <option value="pt-BR">Portugues</option>
+          <option value="it-IT">Italiano</option>
         </select>
       </div>
     </>

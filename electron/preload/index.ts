@@ -6,6 +6,7 @@ import type {
   NewMovie,
   SearchResult,
   Settings,
+  Source,
   UpdateState
 } from '../../shared/types'
 
@@ -27,11 +28,10 @@ const api = {
     export: () => call<string | null>('library:export'),
     import: () => call<ImportSummary | null>('library:import')
   },
-  tmdb: {
-    search: (query: string) => call<SearchResult[]>('tmdb:search', query),
-    details: (tmdbId: number) => call<MovieDetails>('tmdb:details', tmdbId),
-    popular: () => call<SearchResult[]>('tmdb:popular'),
-    verify: (apiKey: string, language: string) => call<boolean>('tmdb:verify', apiKey, language)
+  sources: {
+    search: (query: string) => call<SearchResult[]>('sources:search', query),
+    details: (source: Source, sourceId: string) => call<MovieDetails>('sources:details', source, sourceId),
+    verifyTmdb: (apiKey: string, language: string) => call<boolean>('sources:verifyTmdb', apiKey, language)
   },
   settings: {
     get: () => call<Settings>('settings:get'),

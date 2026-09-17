@@ -1,11 +1,12 @@
-import type { MovieDetails, SearchResult, Settings } from '../../shared/types'
+import type { MovieDetails, SearchResult, Settings } from '../../../shared/types'
+import { SourceError } from './errors'
 
 const API = 'https://api.themoviedb.org/3'
-
-export class TmdbError extends Error {}
+const IMAGES = 'https://image.tmdb.org/t/p'
 
 interface TmdbMovie {
   id: number
+  imdb_id?: string | null
   title?: string
   original_title?: string
   overview?: string
@@ -35,7 +36,7 @@ function authFor(key: string): { headers: Record<string, string>; query: string 
 
 async function request<T>(settings: Settings, endpoint: string, params: Record<string, string>): Promise<T> {
   if (!settings.tmdbApiKey.trim()) {
-    throw new TmdbError('Falta la clave de TMDB. Anadela en Ajustes.')
+    throw new SourceError('Falta la clave de TMDB. Anadela en Ajustes o cambia a la fuente sin cuenta.')
   }
   const auth = authFor(settings.tmdbApiKey)
   const search = new URLSearchParams({ language: settings.language, ...params })
@@ -45,12 +46,12 @@ async function request<T>(settings: Settings, endpoint: string, params: Record<s
   try {
     response = await fetch(url, { headers: { accept: 'application/json', ...auth.headers } })
   } catch {
-    throw new TmdbError('No hay conexion con TMDB. Revisa tu red.')
+    throw new SourceError('No hay conexion con TMDB. Revisa tu red.')
   }
 
-  if (response.status === 401) throw new TmdbError('La clave de TMDB no es valida.')
-  if (response.status === 429) throw new TmdbError('Demasiadas peticiones a TMDB. Prueba en unos segundos.')
-  if (!response.ok) throw new TmdbError(`TMDB respondio ${response.status}.`)
+  if (response.status === 401) throw new SourceError('La clave de TMDB no es valida.')
+  if (response.status === 429) throw new SourceError('Demasiadas peticiones a TMDB. Prueba en unos segundos.')
+  if (!response.ok) throw new SourceError(`TMDB respondio ${response.status}.`)
 
   return (await response.json()) as T
 }
@@ -62,54 +63,52 @@ function yearOf(date?: string): number | null {
 
 function toSearchResult(raw: TmdbMovie): SearchResult {
   return {
+    source: 'tmdb',
+    sourceId: String(raw.id),
+    imdbId: raw.imdb_id ?? null,
     tmdbId: raw.id,
     title: raw.title ?? raw.original_title ?? 'Sin titulo',
     originalTitle: raw.original_title ?? raw.title ?? '',
     year: yearOf(raw.release_date),
     overview: raw.overview ?? '',
-    posterPath: raw.poster_path ?? null,
+    posterUrl: raw.poster_path ? `${IMAGES}/w342${raw.poster_path}` : null,
     voteAverage: typeof raw.vote_average === 'number' ? raw.vote_average : null
   }
 }
 
-export async function search(settings: Settings, query: string, page = 1): Promise<SearchResult[]> {
-  if (!query.trim()) return []
+export async function search(settings: Settings, query: string): Promise<SearchResult[]> {
   const data = await request<{ results?: TmdbMovie[] }>(settings, '/search/movie', {
     query: query.trim(),
     include_adult: 'false',
-    page: String(page)
+    page: '1'
   })
   return (data.results ?? []).map(toSearchResult)
 }
 
-export async function details(settings: Settings, tmdbId: number): Promise<MovieDetails> {
-  const raw = await request<TmdbMovie>(settings, `/movie/${tmdbId}`, { append_to_response: 'credits' })
+export async function details(settings: Settings, sourceId: string): Promise<MovieDetails> {
+  const raw = await request<TmdbMovie>(settings, `/movie/${sourceId}`, { append_to_response: 'credits' })
   const director = raw.credits?.crew?.find((member) => member.job === 'Director')?.name ?? null
   return {
     ...toSearchResult(raw),
-    backdropPath: raw.backdrop_path ?? null,
+    posterUrl: raw.poster_path ? `${IMAGES}/w500${raw.poster_path}` : null,
+    backdropUrl: raw.backdrop_path ? `${IMAGES}/w780${raw.backdrop_path}` : null,
     runtime: raw.runtime ?? null,
-    genres: (raw.genres ?? []).map((g) => g.name).filter(Boolean),
+    genres: (raw.genres ?? []).map((genre) => genre.name).filter(Boolean),
     director,
-    cast: (raw.credits?.cast ?? []).slice(0, 8).map((p) => p.name ?? '').filter(Boolean)
+    cast: (raw.credits?.cast ?? []).slice(0, 8).map((person) => person.name ?? '').filter(Boolean)
   }
-}
-
-/** Peliculas populares: sirve de escaparate cuando la coleccion esta vacia. */
-export async function popular(settings: Settings): Promise<SearchResult[]> {
-  const data = await request<{ results?: TmdbMovie[] }>(settings, '/movie/popular', {
-    page: '1',
-    region: settings.region
-  })
-  return (data.results ?? []).map(toSearchResult)
 }
 
 export async function verifyKey(apiKey: string, language: string): Promise<boolean> {
   try {
-    await request<unknown>({ tmdbApiKey: apiKey, language, region: 'ES', autoUpdate: true }, '/configuration', {})
+    await request<unknown>(
+      { source: 'tmdb', tmdbApiKey: apiKey, language, region: 'ES', autoUpdate: true },
+      '/configuration',
+      {}
+    )
     return true
   } catch (error) {
-    if (error instanceof TmdbError) return false
+    if (error instanceof SourceError) return false
     throw error
   }
 }

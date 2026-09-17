@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import type { Movie } from '../../shared/types'
+import type { Movie, Source } from '../../shared/types'
 import { IconFilm, IconHeart, IconLibrary, IconPlus, IconSettings } from './icons'
 
 export type View = 'library' | 'wishlist' | 'add' | 'settings'
@@ -9,9 +9,10 @@ interface Props {
   onChange: (view: View) => void
   movies: Movie[]
   version: string
+  source: Source
 }
 
-export function Sidebar({ view, onChange, movies, version }: Props): JSX.Element {
+export function Sidebar({ view, onChange, movies, version, source }: Props): JSX.Element {
   const owned = movies.filter((m) => m.status === 'owned')
   const wishlist = movies.filter((m) => m.status === 'wishlist')
   const watched = owned.filter((m) => m.watched)
@@ -68,7 +69,7 @@ export function Sidebar({ view, onChange, movies, version }: Props): JSX.Element
         </button>
         <div style={{ display: 'flex', gap: 7, alignItems: 'center', padding: '10px 10px 0', color: 'var(--text-faint)', fontSize: 11 }}>
           <IconFilm className="nav-icon" />
-          <span>Datos de TMDB</span>
+          <span>{source === 'tmdb' ? 'Fichas de TMDB' : 'Fichas de IMDb y Wikipedia'}</span>
         </div>
       </div>
     </aside>

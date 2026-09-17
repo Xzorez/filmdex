@@ -16,8 +16,8 @@ interface Toast {
 const TITLES: Record<View, { title: string; sub: string }> = {
   library: { title: 'Mi coleccion', sub: 'Las peliculas que tienes en casa' },
   wishlist: { title: 'Quiero verla', sub: 'Lo que te falta por comprar o ver' },
-  add: { title: 'Anadir pelicula', sub: 'Busca por titulo en TMDB' },
-  settings: { title: 'Ajustes', sub: 'Clave de TMDB, copias y actualizaciones' }
+  add: { title: 'Anadir pelicula', sub: 'Busca por titulo y guardala con su formato' },
+  settings: { title: 'Ajustes', sub: 'Fuente de fichas, copias y actualizaciones' }
 }
 
 export function App(): JSX.Element {
@@ -51,8 +51,9 @@ export function App(): JSX.Element {
         setSettings(stored)
         setInfo(appInfo)
         setUpdate(state)
-        // Sin clave no se puede hacer nada util, asi que empezamos en Ajustes.
-        if (!stored.tmdbApiKey.trim()) setView('settings')
+        // Con la fuente libre se puede buscar desde el primer arranque; solo
+        // mandamos a Ajustes a quien haya elegido TMDB y no tenga clave.
+        if (stored.source === 'tmdb' && !stored.tmdbApiKey.trim()) setView('settings')
       } catch (error) {
         fail((error as Error).message)
       } finally {
@@ -125,11 +126,11 @@ export function App(): JSX.Element {
   }
 
   const page = TITLES[view]
-  const hasApiKey = settings.tmdbApiKey.trim().length > 0
+  const needsTmdbKey = settings.source === 'tmdb' && settings.tmdbApiKey.trim().length === 0
 
   return (
     <div className="app">
-      <Sidebar view={view} onChange={setView} movies={movies} version={info.version} />
+      <Sidebar view={view} onChange={setView} movies={movies} version={info.version} source={settings.source} />
 
       <div className="main">
         {(update.status === 'available' || update.status === 'ready') && view !== 'settings' && (
@@ -179,7 +180,7 @@ export function App(): JSX.Element {
           {view === 'add' && (
             <AddView
               movies={movies}
-              hasApiKey={hasApiKey}
+              needsTmdbKey={needsTmdbKey}
               onAdd={addMovie}
               onGoSettings={() => setView('settings')}
               onError={fail}

@@ -1,32 +1,32 @@
 import { useEffect, useRef, useState, type JSX } from 'react'
 import { FORMATS, type Format, type Movie, type NewMovie, type SearchResult, type Status } from '../../shared/types'
-import { posterUrl } from '../lib/tmdb-images'
 import { Poster } from './Poster'
 import { IconCheck, IconPlus, IconSearch, IconSettings } from './icons'
 
 interface Props {
   movies: Movie[]
-  hasApiKey: boolean
+  /** La fuente elegida es TMDB pero todavia no hay clave: no se puede buscar. */
+  needsTmdbKey: boolean
   onAdd: (movie: NewMovie) => Promise<void>
   onGoSettings: () => void
   onError: (message: string) => void
 }
 
-export function AddView({ movies, hasApiKey, onAdd, onGoSettings, onError }: Props): JSX.Element {
+export function AddView({ movies, needsTmdbKey, onAdd, onGoSettings, onError }: Props): JSX.Element {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [touched, setTouched] = useState(false)
   const [format, setFormat] = useState<Format>('Blu-ray')
   const [status, setStatus] = useState<Status>('owned')
-  const [busyId, setBusyId] = useState<number | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => inputRef.current?.focus(), [])
 
   // Busqueda con retardo: no lanzamos una peticion por cada tecla.
   useEffect(() => {
-    if (!hasApiKey) return
+    if (needsTmdbKey) return
     const term = query.trim()
     if (term.length < 2) {
       setResults([])
@@ -37,7 +37,7 @@ export function AddView({ movies, hasApiKey, onAdd, onGoSettings, onError }: Pro
     setLoading(true)
     const timer = setTimeout(async () => {
       try {
-        const found = await window.filmdex.tmdb.search(term)
+        const found = await window.filmdex.sources.search(term)
         if (!cancelled) {
           setResults(found)
           setTouched(true)
@@ -53,23 +53,25 @@ export function AddView({ movies, hasApiKey, onAdd, onGoSettings, onError }: Pro
       cancelled = true
       clearTimeout(timer)
     }
-  }, [query, hasApiKey, onError])
+  }, [query, needsTmdbKey, onError])
 
-  const ownedIds = new Set(movies.map((m) => m.tmdbId))
+  const ownedIds = new Set(movies.map((m) => m.imdbId ?? String(m.tmdbId)))
 
   /** Al guardar pedimos la ficha completa: duracion, generos, director y reparto. */
   const handleAdd = async (result: SearchResult): Promise<void> => {
-    setBusyId(result.tmdbId)
+    setBusyId(result.sourceId)
     try {
-      const full = await window.filmdex.tmdb.details(result.tmdbId)
+      const full = await window.filmdex.sources.details(result.source, result.sourceId)
       await onAdd({
+        source: full.source,
+        imdbId: full.imdbId,
         tmdbId: full.tmdbId,
         title: full.title,
         originalTitle: full.originalTitle,
         year: full.year,
         overview: full.overview,
-        posterPath: full.posterPath,
-        backdropPath: full.backdropPath,
+        posterUrl: full.posterUrl,
+        backdropUrl: full.backdropUrl,
         runtime: full.runtime,
         genres: full.genres,
         director: full.director,
@@ -90,17 +92,17 @@ export function AddView({ movies, hasApiKey, onAdd, onGoSettings, onError }: Pro
     }
   }
 
-  if (!hasApiKey) {
+  if (needsTmdbKey) {
     return (
       <div className="empty">
         <IconSettings className="empty-icon" />
         <h3>Falta la clave de TMDB</h3>
         <p>
-          Filmdex saca las caratulas y las fichas de The Movie Database. Necesitas una clave gratuita para poder
-          buscar peliculas.
+          Tienes elegida la fuente TMDB, que necesita una clave gratuita. Puedes anadirla en Ajustes o volver a la
+          fuente que no pide cuenta.
         </p>
         <button className="btn btn-primary" onClick={onGoSettings}>
-          Configurar ahora
+          Ir a Ajustes
         </button>
       </div>
     )
@@ -163,11 +165,10 @@ export function AddView({ movies, hasApiKey, onAdd, onGoSettings, onError }: Pro
       <div className="result-list">
         {!loading &&
           results.map((result) => {
-            const poster = posterUrl(result.posterPath, 'w154')
-            const already = ownedIds.has(result.tmdbId)
+            const already = ownedIds.has(result.imdbId ?? String(result.tmdbId))
             return (
-              <div key={result.tmdbId} className="result">
-                <Poster url={poster} title={result.title} className="result-poster" />
+              <div key={result.sourceId} className="result">
+                <Poster url={result.posterUrl} title={result.title} className="result-poster" />
                 <div className="result-info">
                   <div className="result-title">
                     {result.title} {result.year && <span style={{ color: 'var(--text-faint)' }}>({result.year})</span>}
@@ -182,10 +183,10 @@ export function AddView({ movies, hasApiKey, onAdd, onGoSettings, onError }: Pro
                 ) : (
                   <button
                     className="btn btn-primary btn-sm"
-                    disabled={busyId === result.tmdbId}
+                    disabled={busyId === result.sourceId}
                     onClick={() => void handleAdd(result)}
                   >
-                    {busyId === result.tmdbId ? <span className="spinner" /> : <IconPlus />}
+                    {busyId === result.sourceId ? <span className="spinner" /> : <IconPlus />}
                     Anadir
                   </button>
                 )}

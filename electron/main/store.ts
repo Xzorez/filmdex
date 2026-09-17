@@ -7,6 +7,8 @@ import type { Library, Movie, NewMovie, Settings } from '../../shared/types'
 const LIBRARY_VERSION = 1
 
 const DEFAULT_SETTINGS: Settings = {
+  // Por defecto, la fuente que no pide cuenta: la app funciona nada mas abrirla.
+  source: 'libre',
   tmdbApiKey: '',
   language: 'es-ES',
   region: 'ES',
@@ -91,11 +93,12 @@ export async function removeMovie(id: string): Promise<boolean> {
 /** Anade peliculas de golpe saltando las que ya estan (por tmdbId + formato). */
 export async function addMany(items: NewMovie[]): Promise<{ added: number; skipped: number }> {
   const library = await load()
-  const seen = new Set(library.movies.map((m) => `${m.tmdbId}|${m.format}`))
+  const seen = new Set(library.movies.map((m) => `${m.imdbId ?? m.tmdbId}|${m.format}`))
   const fresh: Movie[] = []
   for (const item of items) {
-    const key = `${item.tmdbId}|${item.format}`
-    if (item.tmdbId !== null && seen.has(key)) continue
+    const identity = item.imdbId ?? item.tmdbId
+    const key = `${identity}|${item.format}`
+    if (identity !== null && seen.has(key)) continue
     seen.add(key)
     fresh.push({ ...item, id: randomUUID(), addedAt: new Date().toISOString() })
   }

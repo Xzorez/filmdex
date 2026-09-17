@@ -1,6 +1,5 @@
 import type { JSX } from 'react'
 import type { Movie } from '../../shared/types'
-import { posterUrl } from '../lib/tmdb-images'
 import { Poster } from './Poster'
 import { IconCheck } from './icons'
 
@@ -8,7 +7,7 @@ export function MovieCard({ movie, onOpen }: { movie: Movie; onOpen: (movie: Mov
   return (
     <button className="card" onClick={() => onOpen(movie)} title={movie.title}>
       <div className="poster">
-        <Poster url={posterUrl(movie.posterPath)} title={movie.title} />
+        <Poster url={movie.posterUrl} title={movie.title} />
         <span className="poster-badge">{movie.format}</span>
         {movie.watched && (
           <span className="poster-mark" title="Vista">
