@@ -13,7 +13,10 @@ const DEFAULT_SETTINGS: Settings = {
   language: 'es-ES',
   region: 'ES',
   autoUpdate: true,
-  watchAlerts: true
+  watchAlerts: true,
+  backupDir: null,
+  lastBackupAt: null,
+  backupError: null
 }
 
 function libraryPath(): string {
@@ -129,6 +132,28 @@ export async function addMany(items: NewMovie[]): Promise<{ added: number; skipp
     if (identity !== null && seen.has(key)) continue
     seen.add(key)
     fresh.push({ ...item, id: randomUUID(), addedAt: new Date().toISOString() })
+  }
+  if (fresh.length > 0) await persist({ ...library, movies: [...fresh, ...library.movies] })
+  return { added: fresh.length, skipped: items.length - fresh.length }
+}
+
+/**
+ * Restaura peliculas de una copia. A diferencia de importar, conserva su
+ * identificador y su fecha de alta, que son datos del usuario; solo salta las
+ * que ya estan en la coleccion.
+ */
+export async function restoreMany(items: Movie[]): Promise<{ added: number; skipped: number }> {
+  const library = await load()
+  const seen = new Set(library.movies.map((m) => String(m.imdbId ?? m.tmdbId ?? m.id)))
+  const ids = new Set(library.movies.map((m) => m.id))
+  const fresh: Movie[] = []
+  for (const item of items) {
+    const key = String(item.imdbId ?? item.tmdbId ?? item.id)
+    if (seen.has(key)) continue
+    seen.add(key)
+    const id = item.id && !ids.has(item.id) ? item.id : randomUUID()
+    ids.add(id)
+    fresh.push({ ...item, id, addedAt: item.addedAt || new Date().toISOString() })
   }
   if (fresh.length > 0) await persist({ ...library, movies: [...fresh, ...library.movies] })
   return { added: fresh.length, skipped: items.length - fresh.length }

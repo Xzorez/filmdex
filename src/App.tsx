@@ -332,6 +332,8 @@ export function App(): JSX.Element {
               onImport={() => void importLibrary()}
               onExport={() => void exportLibrary()}
               onNotify={notify}
+              onSettings={setSettings}
+              onLibraryChanged={() => void window.filmdex.library.list().then(setMovies)}
             />
           </div>
         )}

@@ -63,6 +63,11 @@ export interface Settings {
   autoUpdate: boolean
   /** Avisar cuando una pelicula de la lista llegue a una plataforma. */
   watchAlerts: boolean
+  /** Carpeta de la copia de seguridad automatica, o null si no se hace. */
+  backupDir: string | null
+  lastBackupAt: string | null
+  /** Por que fallo la ultima copia, para ensenarlo en Ajustes. */
+  backupError: string | null
 }
 
 /** Resultado resumido de una búsqueda, ya normalizado venga de donde venga. */

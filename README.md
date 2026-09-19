@@ -17,6 +17,7 @@ Todo se guarda **solo en tu ordenador**. No hay cuentas, ni servidores, ni nada 
 - Búsqueda por título con carátula, año, duración, director, reparto y sinopsis en español. **Sin cuentas ni claves**: funciona nada más instalarla.
 - Colección y lista aparte, organizadas en filas (pendientes, mejor puntuadas, por género) o en rejilla con filtros.
 - Tu propia nota del 1 al 10, marcar como vista con fecha y notas libres por película.
+- **Copia de seguridad automática**: una copia diaria de la colección en la carpeta que elijas (mejor de OneDrive o Dropbox), con las siete últimas por fecha. Si la colección aparece vacía de repente, no sobrescribe la copia buena. «Restaurar» la trae de vuelta, también en otro ordenador. La clave de TMDB no se copia.
 - Exportar e importar la colección en JSON para tener copia o llevártela a otro equipo.
 - Ventana sin el marco de Windows: la barra de título y los botones de minimizar, maximizar y cerrar los dibuja la propia app.
 - Se actualiza sola: cuando se publica una versión nueva en GitHub, la app la detecta, la descarga y la instala al reiniciar.

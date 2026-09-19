@@ -70,6 +70,13 @@ const api = {
       }
     }
   },
+  backup: {
+    /** Abre el selector de carpeta y hace la primera copia; null si se cancela. */
+    choose: () => call<Settings | null>('backup:choose'),
+    run: () => call<Settings>('backup:run'),
+    stop: () => call<Settings>('backup:stop'),
+    restore: () => call<ImportSummary>('backup:restore')
+  },
   alerts: {
     check: () => call<{ checked: number; changes: number }>('alerts:check'),
     /** Tras cada revision: las peliculas de la lista que han llegado a alguna plataforma. */

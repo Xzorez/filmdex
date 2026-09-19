@@ -199,7 +199,7 @@ export async function similar(settings: Settings, tmdbId: number): Promise<Movie
 export async function verifyKey(apiKey: string, language: string): Promise<boolean> {
   try {
     await request<unknown>(
-      { source: 'tmdb', tmdbApiKey: apiKey, language, region: 'ES', autoUpdate: true, watchAlerts: false },
+      { source: 'tmdb', tmdbApiKey: apiKey, language, region: 'ES', autoUpdate: true, watchAlerts: false, backupDir: null, lastBackupAt: null, backupError: null },
       '/configuration',
       {}
     )

@@ -12,6 +12,10 @@ interface Props {
   onImport: () => void
   onExport: () => void
   onNotify: (message: string, kind?: 'ok' | 'bad') => void
+  /** Ajustes nuevos que devuelve el proceso principal tras una copia. */
+  onSettings: (settings: Settings) => void
+  /** La colección ha cambiado por fuera (al restaurar): hay que recargarla. */
+  onLibraryChanged: () => void
 }
 
 const SOURCES: { id: Source; title: string; detail: string }[] = [
@@ -38,12 +42,46 @@ export function SettingsView({
   update,
   onImport,
   onExport,
-  onNotify
+  onNotify,
+  onSettings,
+  onLibraryChanged
 }: Props): JSX.Element {
   const [apiKey, setApiKey] = useState(settings.tmdbApiKey)
   const [checking, setChecking] = useState(false)
   const [verdict, setVerdict] = useState<'ok' | 'bad' | null>(null)
   const [checkingAlerts, setCheckingAlerts] = useState(false)
+  const [backupBusy, setBackupBusy] = useState(false)
+
+  /** Cualquier acción de la copia devuelve los ajustes al día, o null si se canceló. */
+  const runBackup = async (action: () => Promise<Settings | null>): Promise<void> => {
+    setBackupBusy(true)
+    try {
+      const next = await action()
+      if (!next) return
+      onSettings(next)
+      if (next.backupDir && !next.backupError && next.lastBackupAt) onNotify('Copia guardada')
+    } catch (error) {
+      onNotify((error as Error).message, 'bad')
+    } finally {
+      setBackupBusy(false)
+    }
+  }
+
+  const restoreBackup = async (): Promise<void> => {
+    setBackupBusy(true)
+    try {
+      const { added, skipped } = await window.filmdex.backup.restore()
+      onLibraryChanged()
+      onNotify(added === 0 ? 'La copia no tenía nada que no tuvieras ya' : `${added} restauradas, ${skipped} ya estaban`)
+    } catch (error) {
+      onNotify((error as Error).message, 'bad')
+    } finally {
+      setBackupBusy(false)
+    }
+  }
+
+  const backupDate = (iso: string): string =>
+    new Date(iso).toLocaleString('es-ES', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
 
   const checkAlerts = async (): Promise<void> => {
     setCheckingAlerts(true)
@@ -210,6 +248,49 @@ export function SettingsView({
         <div className="mono" style={{ marginTop: 12 }}>
           {dataDir}
         </div>
+      </div>
+
+      <div className="panel">
+        <h3>Copia de seguridad</h3>
+        <p className="hint">
+          Tu colección solo está en este ordenador. Elige una carpeta, mejor de OneDrive o Dropbox, y Filmdex guardará
+          en ella una copia cada día, con las siete últimas por fecha. La clave de TMDB no se copia. En otro ordenador,
+          elige la misma carpeta y pulsa «Restaurar» para traerte la colección.
+        </p>
+
+        {settings.backupDir ? (
+          <>
+            <div className="mono" style={{ marginBottom: 10 }}>
+              {settings.backupDir}
+            </div>
+            <div className="status-line" style={{ marginTop: 0 }}>
+              {settings.lastBackupAt ? `Última copia: ${backupDate(settings.lastBackupAt)}` : 'Aún no se ha hecho ninguna copia'}
+            </div>
+            {settings.backupError && <div className="status-line bad">{settings.backupError}</div>}
+            <div className="chip-row" style={{ marginTop: 14 }}>
+              <button className="btn" disabled={backupBusy} onClick={() => void runBackup(() => window.filmdex.backup.run())}>
+                {backupBusy ? <span className="spinner" /> : <IconDownload />}
+                Copiar ahora
+              </button>
+              <button className="btn" disabled={backupBusy} onClick={() => void restoreBackup()}>
+                <IconUpload />
+                Restaurar desde la copia
+              </button>
+              <button className="btn btn-ghost" disabled={backupBusy} onClick={() => void runBackup(() => window.filmdex.backup.choose())}>
+                <IconFolder />
+                Cambiar carpeta
+              </button>
+              <button className="btn btn-ghost" disabled={backupBusy} onClick={() => void runBackup(() => window.filmdex.backup.stop())}>
+                Dejar de copiar
+              </button>
+            </div>
+          </>
+        ) : (
+          <button className="btn" disabled={backupBusy} onClick={() => void runBackup(() => window.filmdex.backup.choose())}>
+            {backupBusy ? <span className="spinner" /> : <IconFolder />}
+            Elegir carpeta
+          </button>
+        )}
       </div>
 
       <div className="panel">

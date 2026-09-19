@@ -6,6 +6,7 @@ import * as sources from './providers'
 import * as titleCache from './providers/title-cache'
 import { SourceError } from './providers'
 import { runOnce, startAlerts, type Deps } from './alerts'
+import { isDue, readBackup, writeBackup } from './backup'
 import * as store from './store'
 import { checkForUpdates, currentState, downloadUpdate, initUpdater, installUpdate } from './updater'
 
@@ -96,6 +97,36 @@ function handle<A extends unknown[], R>(channel: string, fn: (...args: A) => Pro
   })
 }
 
+/**
+ * Hace la copia en la carpeta elegida y apunta el resultado en los ajustes,
+ * para que Ajustes pueda contar cuando fue la ultima o por que fallo.
+ */
+async function backupNow(): Promise<Settings> {
+  const settings = await store.getSettings()
+  if (!settings.backupDir) return settings
+  try {
+    const result = await writeBackup(settings.backupDir, await store.listMovies())
+    if (result.kind === 'skipped-empty') {
+      return store.setSettings({
+        backupError: `Tu colección está vacía y la copia tiene ${result.previous} películas: no la he sobrescrito.`
+      })
+    }
+    return store.setSettings({ lastBackupAt: new Date().toISOString(), backupError: null })
+  } catch (error) {
+    return store.setSettings({ backupError: (error as Error).message })
+  }
+}
+
+/** Cada hora se mira si toca: la copia se hace como mucho una vez al día. */
+function startBackups(): void {
+  const tick = async (): Promise<void> => {
+    const settings = await store.getSettings()
+    if (settings.backupDir && isDue(settings.lastBackupAt)) await backupNow()
+  }
+  setTimeout(() => void tick(), 60 * 1000)
+  setInterval(() => void tick(), 60 * 60 * 1000)
+}
+
 function registerHandlers(): void {
   handle('library:list', () => store.listMovies())
   handle('library:add', (movie: NewMovie) => store.addMovie(movie))
@@ -168,6 +199,23 @@ function registerHandlers(): void {
   })
   handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false)
 
+  handle('backup:choose', async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Carpeta para la copia de seguridad',
+      properties: ['openDirectory', 'createDirectory']
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    await store.setSettings({ backupDir: result.filePaths[0], backupError: null })
+    return backupNow()
+  })
+  handle('backup:run', () => backupNow())
+  handle('backup:stop', () => store.setSettings({ backupDir: null, backupError: null }))
+  handle('backup:restore', async () => {
+    const settings = await store.getSettings()
+    if (!settings.backupDir) throw new Error('Primero elige la carpeta de la copia.')
+    return store.restoreMany(await readBackup(settings.backupDir))
+  })
+
   handle('alerts:check', () => (mainWindow ? runOnce(mainWindow, alertDeps) : { checked: 0, changes: 0 }))
 
   handle('updater:state', () => currentState())
@@ -229,6 +277,7 @@ if (!app.requestSingleInstanceLock()) {
     registerHandlers()
     createWindow()
     if (mainWindow) startAlerts(mainWindow, alertDeps)
+    startBackups()
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow()

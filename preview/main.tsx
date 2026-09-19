@@ -364,7 +364,7 @@ const catalog: MovieDetails[] = [
 ]
 
 let movies = [...sample]
-let settings: Settings = { source: 'libre', tmdbApiKey: 'demo', language: 'es-ES', region: 'ES', autoUpdate: true, watchAlerts: true }
+let settings: Settings = { source: 'libre', tmdbApiKey: 'demo', language: 'es-ES', region: 'ES', autoUpdate: true, watchAlerts: true, backupDir: null, lastBackupAt: null, backupError: null }
 
 const wait = <T,>(value: T): Promise<T> => new Promise((done) => setTimeout(() => done(value), 120))
 
@@ -475,6 +475,21 @@ window.filmdex = {
     close: () => wait(undefined),
     isMaximized: () => wait(false),
     onMaximized: () => () => undefined
+  },
+  backup: {
+    choose: () => {
+      settings = { ...settings, backupDir: 'C:\\Users\\demo\\OneDrive\\Filmdex', lastBackupAt: new Date().toISOString() }
+      return wait(settings)
+    },
+    run: () => {
+      settings = { ...settings, lastBackupAt: new Date().toISOString() }
+      return wait(settings)
+    },
+    stop: () => {
+      settings = { ...settings, backupDir: null }
+      return wait(settings)
+    },
+    restore: () => wait({ added: 0, skipped: 6 })
   },
   alerts: {
     check: () => wait({ checked: 1, changes: 0 }),
