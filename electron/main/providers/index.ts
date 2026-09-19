@@ -5,6 +5,13 @@ import * as tmdb from './tmdb'
 export { SourceError } from './errors'
 export const verifyTmdbKey = tmdb.verifyKey
 
+/**
+ * Donde verla sale siempre de TMDB, uses la fuente que uses: la fuente sin
+ * cuenta tambien trae el codigo de TMDB de cada pelicula, asi que basta con
+ * tener la clave guardada.
+ */
+export const watchProviders = tmdb.watchProviders
+
 function pick(source: Source): {
   search: typeof libre.search
   details: typeof libre.details

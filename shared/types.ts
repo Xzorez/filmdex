@@ -26,6 +26,11 @@ export interface Movie {
   director: string | null
   cast: string[]
   voteAverage: number | null
+  /**
+   * Codigo del trailer en YouTube. Opcional porque las peliculas guardadas
+   * antes de que existiera no lo tienen; se rellena al abrir su ficha.
+   */
+  trailerKey?: string | null
 
   // Datos propios del coleccionista
   status: Status
@@ -75,6 +80,23 @@ export interface MovieDetails extends SearchResult {
   genres: string[]
   director: string | null
   cast: string[]
+  /** Codigo del trailer en YouTube, si la fuente lo conoce. */
+  trailerKey: string | null
+}
+
+export interface WatchProvider {
+  name: string
+  logoUrl: string | null
+}
+
+/** Donde se puede ver una pelicula en la region del usuario. */
+export interface WatchOptions {
+  /** Pagina de TMDB con los enlaces directos a cada plataforma. */
+  link: string | null
+  /** Incluida en una suscripcion, o gratis con o sin anuncios. */
+  stream: WatchProvider[]
+  rent: WatchProvider[]
+  buy: WatchProvider[]
 }
 
 /** Generos comunes a las dos fuentes, con su nombre en espanol para la interfaz. */

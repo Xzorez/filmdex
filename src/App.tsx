@@ -5,7 +5,9 @@ import { HomeView } from './components/HomeView'
 import { MovieSheet } from './components/MovieSheet'
 import { SearchView } from './components/SearchView'
 import { SettingsView } from './components/SettingsView'
+import { TonightPicker } from './components/TonightPicker'
 import { TopNav, type View } from './components/TopNav'
+import { TrailerPlayer } from './components/TrailerPlayer'
 import { IconDownload } from './components/icons'
 import { findOwned, fromSearchResult, ownedIndex, toDetails, toNewMovie } from './lib/movie'
 import { clearDiscoverCache } from './lib/useDiscover'
@@ -29,6 +31,8 @@ export function App(): JSX.Element {
   const [info, setInfo] = useState({ version: '0.0.0', dataDir: '' })
   const [ready, setReady] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [trailer, setTrailer] = useState<{ key: string; title: string } | null>(null)
+  const [tonight, setTonight] = useState(false)
   const scroller = useRef<HTMLDivElement>(null)
 
   const notify = useCallback((message: string, kind: 'ok' | 'bad' = 'ok'): void => {
@@ -105,7 +109,28 @@ export function App(): JSX.Element {
   }
 
   const openFromCollection = (movie: Movie): void => {
-    setSheet({ details: toDetails(movie), loading: false })
+    const details = toDetails(movie)
+    // Las guardadas antes de existir los trailers no saben si tienen uno: se
+    // pregunta una vez en segundo plano y se apunta, sea cual sea la respuesta.
+    const unknownTrailer = movie.trailerKey === undefined && details.sourceId !== ''
+    setSheet({ details, loading: unknownTrailer })
+    if (!unknownTrailer) return
+
+    window.filmdex.sources
+      .details(details.source, details.sourceId)
+      .then((full) => {
+        patchMovie(movie.id, { trailerKey: full.trailerKey })
+        setSheet((current) =>
+          current && current.details.sourceId === details.sourceId
+            ? { details: { ...current.details, trailerKey: full.trailerKey }, loading: false }
+            : current
+        )
+      })
+      .catch(() => setSheet((current) => (current ? { ...current, loading: false } : current)))
+  }
+
+  const playTrailer = (details: MovieDetails): void => {
+    if (details.trailerKey) setTrailer({ key: details.trailerKey, title: details.title })
   }
 
   const addMovie = async (details: MovieDetails, status: Status): Promise<void> => {
@@ -195,6 +220,7 @@ export function App(): JSX.Element {
         query={query}
         onQuery={setQuery}
         scrolled={scrolled || view !== 'home'}
+        onSurprise={() => setTonight(true)}
       />
 
       {updateBanner && (
@@ -228,6 +254,7 @@ export function App(): JSX.Element {
             onGenre={setGenre}
             onOpen={openFromCatalog}
             onQuickAdd={(details) => void addMovie(details, 'owned')}
+            onTrailer={playTrailer}
             busyId={busyId}
           />
         )}
@@ -294,7 +321,32 @@ export function App(): JSX.Element {
           onAdd={(status) => void addMovie(sheet.details, status)}
           onPatch={patchMovie}
           onDelete={(movie) => void deleteMovie(movie)}
+          onTrailer={() => playTrailer(sheet.details)}
+          hasTmdbKey={settings.tmdbApiKey.trim().length > 0}
+          onGoSettings={() => {
+            setSheet(null)
+            setView('settings')
+          }}
         />
+      )}
+
+      {tonight && (
+        <TonightPicker
+          movies={movies}
+          onClose={() => setTonight(false)}
+          onOpen={(movie) => {
+            setTonight(false)
+            openFromCollection(movie)
+          }}
+          onDiscover={() => {
+            setTonight(false)
+            setView('home')
+          }}
+        />
+      )}
+
+      {trailer && (
+        <TrailerPlayer youtubeKey={trailer.key} title={trailer.title} onClose={() => setTrailer(null)} />
       )}
 
       <div className="toasts">

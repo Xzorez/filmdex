@@ -3,7 +3,8 @@ import type { Movie, MovieDetails, Status } from '../../shared/types'
 import { dateLabel, runtimeLabel } from '../lib/format'
 import { Backdrop } from './Backdrop'
 import { Rating } from './Rating'
-import { IconCheck, IconClose, IconEye, IconHeart, IconPlus, IconTrash } from './icons'
+import { WatchPanel } from './WatchPanel'
+import { IconCheck, IconClose, IconEye, IconHeart, IconPlay, IconPlus, IconTrash } from './icons'
 
 interface Props {
   details: MovieDetails
@@ -15,6 +16,9 @@ interface Props {
   onAdd: (status: Status) => void
   onPatch: (id: string, patch: Partial<Movie>) => void
   onDelete: (movie: Movie) => void
+  onTrailer: () => void
+  hasTmdbKey: boolean
+  onGoSettings: () => void
 }
 
 export function MovieSheet({
@@ -25,7 +29,10 @@ export function MovieSheet({
   onClose,
   onAdd,
   onPatch,
-  onDelete
+  onDelete,
+  onTrailer,
+  hasTmdbKey,
+  onGoSettings
 }: Props): JSX.Element {
   const [notes, setNotes] = useState(owned?.notes ?? '')
 
@@ -61,9 +68,15 @@ export function MovieSheet({
             <h2 className="sheet-title">{details.title}</h2>
 
             <div className="sheet-actions">
+              {details.trailerKey && (
+                <button className="btn btn-light" onClick={onTrailer}>
+                  <IconPlay />
+                  Ver trailer
+                </button>
+              )}
               {owned ? (
                 <>
-                  <button className="btn btn-light" onClick={toggleWatched}>
+                  <button className="btn" onClick={toggleWatched}>
                     {owned.watched ? <IconCheck /> : <IconEye />}
                     {owned.watched ? 'Vista' : 'Marcar como vista'}
                   </button>
@@ -76,7 +89,7 @@ export function MovieSheet({
                 </>
               ) : (
                 <>
-                  <button className="btn btn-light" onClick={() => onAdd('owned')} disabled={busy}>
+                  <button className="btn" onClick={() => onAdd('owned')} disabled={busy}>
                     {busy ? <span className="spinner" /> : <IconPlus />}
                     Anadir a mi coleccion
                   </button>
@@ -103,6 +116,8 @@ export function MovieSheet({
             <p className="sheet-overview">
               {details.overview || 'No hay sinopsis disponible para esta pelicula.'}
             </p>
+
+            <WatchPanel tmdbId={details.tmdbId} hasTmdbKey={hasTmdbKey} onGoSettings={onGoSettings} />
           </div>
 
           <dl className="meta-list">

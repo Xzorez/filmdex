@@ -2,17 +2,18 @@ import type { JSX } from 'react'
 import type { Movie, MovieDetails } from '../../shared/types'
 import { runtimeLabel } from '../lib/format'
 import { Backdrop } from './Backdrop'
-import { IconCheck, IconInfo, IconPlus } from './icons'
+import { IconCheck, IconInfo, IconPlay, IconPlus } from './icons'
 
 interface Props {
   movie: MovieDetails
   owned: Movie | null
   onOpen: () => void
   onAdd: () => void
+  onTrailer: () => void
   busy: boolean
 }
 
-export function Hero({ movie, owned, onOpen, onAdd, busy }: Props): JSX.Element {
+export function Hero({ movie, owned, onOpen, onAdd, onTrailer, busy }: Props): JSX.Element {
   const runtime = runtimeLabel(movie.runtime)
 
   return (
@@ -37,13 +38,19 @@ export function Hero({ movie, owned, onOpen, onAdd, busy }: Props): JSX.Element 
         {movie.overview && <p className="hero-overview">{movie.overview}</p>}
 
         <div className="hero-actions">
+          {movie.trailerKey && (
+            <button className="btn btn-light" onClick={onTrailer}>
+              <IconPlay />
+              Ver trailer
+            </button>
+          )}
           {owned ? (
-            <button className="btn btn-light" onClick={onOpen}>
+            <button className="btn" onClick={onOpen}>
               <IconCheck />
               Ya en tu coleccion
             </button>
           ) : (
-            <button className="btn btn-light" onClick={onAdd} disabled={busy}>
+            <button className={`btn${movie.trailerKey ? '' : ' btn-light'}`} onClick={onAdd} disabled={busy}>
               {busy ? <span className="spinner" /> : <IconPlus />}
               Anadir a mi coleccion
             </button>

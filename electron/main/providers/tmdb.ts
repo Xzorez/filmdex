@@ -1,4 +1,11 @@
-import type { DiscoverQuery, MovieDetails, SearchResult, Settings } from '../../../shared/types'
+import type {
+  DiscoverQuery,
+  MovieDetails,
+  SearchResult,
+  Settings,
+  WatchOptions,
+  WatchProvider
+} from '../../../shared/types'
 import { SourceError } from './errors'
 
 const API = 'https://api.themoviedb.org/3'
@@ -19,6 +26,9 @@ interface TmdbMovie {
   credits?: {
     crew?: { job?: string; name?: string }[]
     cast?: { name?: string }[]
+  }
+  videos?: {
+    results?: { site?: string; type?: string; key?: string; official?: boolean; iso_639_1?: string | null }[]
   }
 }
 
@@ -86,7 +96,13 @@ export async function search(settings: Settings, query: string): Promise<SearchR
 }
 
 export async function details(settings: Settings, sourceId: string): Promise<MovieDetails> {
-  const raw = await request<TmdbMovie>(settings, `/movie/${sourceId}`, { append_to_response: 'credits' })
+  const language = settings.language.split('-')[0]
+  const raw = await request<TmdbMovie>(settings, `/movie/${sourceId}`, {
+    append_to_response: 'credits,videos',
+    // Sin esto TMDB solo devuelve videos en el idioma pedido, y muchas
+    // peliculas no tienen trailer doblado.
+    include_video_language: `${language},en,null`
+  })
   const director = raw.credits?.crew?.find((member) => member.job === 'Director')?.name ?? null
   return {
     ...toSearchResult(raw),
@@ -95,8 +111,19 @@ export async function details(settings: Settings, sourceId: string): Promise<Mov
     runtime: raw.runtime ?? null,
     genres: (raw.genres ?? []).map((genre) => genre.name).filter(Boolean),
     director,
-    cast: (raw.credits?.cast ?? []).slice(0, 8).map((person) => person.name ?? '').filter(Boolean)
+    cast: (raw.credits?.cast ?? []).slice(0, 8).map((person) => person.name ?? '').filter(Boolean),
+    trailerKey: trailerOf(raw, language)
   }
+}
+
+/** Trailer de YouTube: primero el oficial en tu idioma, luego cualquier oficial, luego lo que haya. */
+function trailerOf(raw: TmdbMovie, language: string): string | null {
+  const videos = (raw.videos?.results ?? []).filter(
+    (video) => video.site === 'YouTube' && video.key && (video.type === 'Trailer' || video.type === 'Teaser')
+  )
+  const rank = (video: (typeof videos)[number]): number =>
+    (video.type === 'Trailer' ? 4 : 0) + (video.official ? 2 : 0) + (video.iso_639_1 === language ? 1 : 0)
+  return [...videos].sort((a, b) => rank(b) - rank(a))[0]?.key ?? null
 }
 
 export async function verifyKey(apiKey: string, language: string): Promise<boolean> {
@@ -158,6 +185,59 @@ export async function discover(settings: Settings, query: DiscoverQuery): Promis
     runtime: null,
     genres: [],
     director: null,
-    cast: []
+    cast: [],
+    trailerKey: null
   }))
+}
+
+interface TmdbProvider {
+  provider_name?: string
+  logo_path?: string | null
+  display_priority?: number
+}
+
+interface TmdbRegionProviders {
+  link?: string
+  flatrate?: TmdbProvider[]
+  free?: TmdbProvider[]
+  ads?: TmdbProvider[]
+  rent?: TmdbProvider[]
+  buy?: TmdbProvider[]
+}
+
+function toProviders(list: TmdbProvider[] | undefined): WatchProvider[] {
+  return [...(list ?? [])]
+    .sort((a, b) => (a.display_priority ?? 99) - (b.display_priority ?? 99))
+    .filter((item) => item.provider_name)
+    .map((item) => ({
+      name: item.provider_name ?? '',
+      logoUrl: item.logo_path ? `${IMAGES}/w92${item.logo_path}` : null
+    }))
+}
+
+/**
+ * Plataformas donde esta la pelicula en la region del usuario. TMDB saca estos
+ * datos de JustWatch. Devuelve null si alli no esta en ninguna.
+ */
+export async function watchProviders(settings: Settings, tmdbId: number): Promise<WatchOptions | null> {
+  const data = await request<{ results?: Record<string, TmdbRegionProviders> }>(
+    settings,
+    `/movie/${tmdbId}/watch/providers`,
+    {}
+  )
+  const region = data.results?.[settings.region]
+  if (!region) return null
+
+  // Una misma plataforma puede venir como gratis y con anuncios a la vez.
+  const seen = new Set<string>()
+  const stream = [...toProviders(region.flatrate), ...toProviders(region.free), ...toProviders(region.ads)].filter(
+    (item) => !seen.has(item.name) && seen.add(item.name)
+  )
+  const options: WatchOptions = {
+    link: region.link ?? null,
+    stream,
+    rent: toProviders(region.rent),
+    buy: toProviders(region.buy)
+  }
+  return options.stream.length + options.rent.length + options.buy.length > 0 ? options : null
 }

@@ -14,10 +14,11 @@ interface Props {
   onGenre: (genre: string | null) => void
   onOpen: (movie: MovieDetails) => void
   onQuickAdd: (movie: MovieDetails) => void
+  onTrailer: (movie: MovieDetails) => void
   busyId: string | null
 }
 
-export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }: Props): JSX.Element {
+export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer, busyId }: Props): JSX.Element {
   const owned = useMemo(() => ownedIndex(movies), [movies])
   const favourites = useMemo(() => favouriteGenres(movies), [movies])
 
@@ -83,6 +84,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
           owned={findOwned(owned, feature)}
           onOpen={() => onOpen(feature)}
           onAdd={() => onQuickAdd(feature)}
+          onTrailer={() => onTrailer(feature)}
           busy={busyId === feature.sourceId}
         />
       ) : (

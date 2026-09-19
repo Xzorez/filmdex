@@ -40,6 +40,8 @@ interface CinemetaMeta {
   director?: string[]
   cast?: string[]
   moviedb_id?: number
+  trailers?: { source?: string; type?: string }[]
+  trailerStreams?: { ytId?: string }[]
 }
 
 /**
@@ -242,6 +244,13 @@ async function wikipediaSummary(articleUrl: string, language: string): Promise<s
 /** Cuantas peliculas se piden por fila: suficientes para un carrusel largo. */
 const ROW_SIZE = 24
 
+/** El trailer principal: se prefiere el marcado como tal a clips y teasers. */
+function trailerOf(meta: CinemetaMeta): string | null {
+  const trailers = meta.trailers ?? []
+  const main = trailers.find((item) => item.type === 'Trailer' && item.source) ?? trailers.find((item) => item.source)
+  return main?.source ?? meta.trailerStreams?.find((item) => item.ytId)?.ytId ?? null
+}
+
 /** Convierte un meta de catalogo, que ya viene completo, en una ficha entera. */
 function toDetails(meta: CinemetaMeta, language: string): MovieDetails {
   return {
@@ -250,7 +259,8 @@ function toDetails(meta: CinemetaMeta, language: string): MovieDetails {
     runtime: runtimeOf(meta),
     genres: translateGenres(meta.genres ?? meta.genre ?? [], language),
     director: meta.director?.[0] ?? null,
-    cast: (meta.cast ?? []).slice(0, 8)
+    cast: (meta.cast ?? []).slice(0, 8),
+    trailerKey: trailerOf(meta)
   }
 }
 

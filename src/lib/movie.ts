@@ -41,7 +41,8 @@ export function findOwned(index: Map<string, Movie>, candidate: Identifiable): M
 export function toDetails(movie: Movie): MovieDetails {
   return {
     source: movie.source,
-    sourceId: movie.imdbId ?? String(movie.tmdbId ?? ''),
+    // Cada fuente pide sus fichas con su propio codigo: TMDB no entiende los de IMDb.
+    sourceId: movie.source === 'tmdb' ? String(movie.tmdbId ?? '') : (movie.imdbId ?? ''),
     imdbId: movie.imdbId,
     tmdbId: movie.tmdbId,
     title: movie.title,
@@ -54,7 +55,8 @@ export function toDetails(movie: Movie): MovieDetails {
     runtime: movie.runtime,
     genres: movie.genres,
     director: movie.director,
-    cast: movie.cast
+    cast: movie.cast,
+    trailerKey: movie.trailerKey ?? null
   }
 }
 
@@ -63,7 +65,7 @@ export function toDetails(movie: Movie): MovieDetails {
  * huecos para poder abrirlo al momento mientras llega el resto.
  */
 export function fromSearchResult(result: SearchResult): MovieDetails {
-  return { ...result, backdropUrl: null, runtime: null, genres: [], director: null, cast: [] }
+  return { ...result, backdropUrl: null, runtime: null, genres: [], director: null, cast: [], trailerKey: null }
 }
 
 /** Convierte una ficha en una pelicula lista para guardar en la coleccion. */
@@ -83,6 +85,7 @@ export function toNewMovie(details: MovieDetails, status: Status): NewMovie {
     director: details.director,
     cast: details.cast,
     voteAverage: details.voteAverage,
+    trailerKey: details.trailerKey,
     status,
     watched: false,
     rating: null,

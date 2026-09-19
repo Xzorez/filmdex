@@ -8,6 +8,9 @@ Todo se guarda **solo en tu ordenador**. No hay cuentas, ni servidores, ni nada 
 
 - **Descubre qué ver**: portada destacada y filas por categoría, filtrables por 17 géneros.
 - **Te recomienda**: deduce tus géneros favoritos de lo que ya tienes — dando más peso a lo que puntuaste alto — y te propone películas de esos géneros que aún no tienes.
+- **Tráileres** dentro de la app, desde la portada o desde cualquier ficha. Arrancan al instante en silencio; el altavoz del reproductor activa el sonido.
+- **Dónde verla**: en qué plataformas está cada película en tu país (incluida en la suscripción, alquiler o compra). Los datos son de JustWatch a través de TMDB, así que necesita la clave de TMDB guardada, uses la fuente que uses.
+- **Sorpréndeme**: elige al azar una película sin ver de tu colección o tu lista, con filtros de duración y género.
 - Búsqueda por título con carátula, año, duración, director, reparto y sinopsis en español. **Sin cuentas ni claves**: funciona nada más instalarla.
 - Colección y lista aparte, organizadas en filas (pendientes, mejor puntuadas, por género) o en rejilla con filtros.
 - Tu propia nota del 1 al 10, marcar como vista con fecha y notas libres por película.

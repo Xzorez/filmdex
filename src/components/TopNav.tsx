@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type JSX } from 'react'
 import { WindowControls } from './WindowControls'
-import { IconClose, IconSearch, IconSettings } from './icons'
+import { IconClose, IconSearch, IconSettings, IconSparkle } from './icons'
 
 export type View = 'home' | 'collection' | 'wishlist' | 'search' | 'settings'
 
@@ -10,6 +10,7 @@ interface Props {
   query: string
   onQuery: (query: string) => void
   scrolled: boolean
+  onSurprise: () => void
 }
 
 const LINKS: { id: View; label: string }[] = [
@@ -18,7 +19,7 @@ const LINKS: { id: View; label: string }[] = [
   { id: 'wishlist', label: 'Mi lista' }
 ]
 
-export function TopNav({ view, onChange, query, onQuery, scrolled }: Props): JSX.Element {
+export function TopNav({ view, onChange, query, onQuery, scrolled, onSurprise }: Props): JSX.Element {
   const [open, setOpen] = useState(view === 'search')
   const input = useRef<HTMLInputElement>(null)
 
@@ -53,6 +54,10 @@ export function TopNav({ view, onChange, query, onQuery, scrolled }: Props): JSX
             {link.label}
           </button>
         ))}
+        <button className="nav-link nav-surprise" onClick={onSurprise} title="Que veo esta noche?">
+          <IconSparkle />
+          Sorprendeme
+        </button>
       </div>
 
       <div className="nav-right">

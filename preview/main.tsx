@@ -186,7 +186,8 @@ const catalog: MovieDetails[] = [
     runtime: 181,
     genres: ['Drama', 'Historia'],
     director: 'Christopher Nolan',
-    cast: ['Cillian Murphy', 'Emily Blunt', 'Robert Downey Jr.']
+    cast: ['Cillian Murphy', 'Emily Blunt', 'Robert Downey Jr.'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -204,7 +205,8 @@ const catalog: MovieDetails[] = [
     runtime: 114,
     genres: ['Comedia', 'Aventura'],
     director: 'Greta Gerwig',
-    cast: ['Margot Robbie', 'Ryan Gosling']
+    cast: ['Margot Robbie', 'Ryan Gosling'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -222,7 +224,8 @@ const catalog: MovieDetails[] = [
     runtime: 139,
     genres: ['Ciencia ficcion', 'Aventura'],
     director: 'Daniel Kwan',
-    cast: ['Michelle Yeoh', 'Ke Huy Quan']
+    cast: ['Michelle Yeoh', 'Ke Huy Quan'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -240,7 +243,8 @@ const catalog: MovieDetails[] = [
     runtime: 155,
     genres: ['Ciencia ficcion', 'Aventura'],
     director: 'Denis Villeneuve',
-    cast: ['Timothee Chalamet', 'Rebecca Ferguson']
+    cast: ['Timothee Chalamet', 'Rebecca Ferguson'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -258,7 +262,8 @@ const catalog: MovieDetails[] = [
     runtime: 119,
     genres: ['Belica', 'Drama'],
     director: 'Sam Mendes',
-    cast: ['George MacKay', 'Dean-Charles Chapman']
+    cast: ['George MacKay', 'Dean-Charles Chapman'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -276,7 +281,8 @@ const catalog: MovieDetails[] = [
     runtime: 122,
     genres: ['Crimen', 'Drama'],
     director: 'Todd Phillips',
-    cast: ['Joaquin Phoenix', 'Robert De Niro']
+    cast: ['Joaquin Phoenix', 'Robert De Niro'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -294,7 +300,8 @@ const catalog: MovieDetails[] = [
     runtime: 104,
     genres: ['Terror', 'Misterio'],
     director: 'Jordan Peele',
-    cast: ['Daniel Kaluuya', 'Allison Williams']
+    cast: ['Daniel Kaluuya', 'Allison Williams'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -312,7 +319,8 @@ const catalog: MovieDetails[] = [
     runtime: 107,
     genres: ['Drama', 'Musica'],
     director: 'Damien Chazelle',
-    cast: ['Miles Teller', 'J.K. Simmons']
+    cast: ['Miles Teller', 'J.K. Simmons'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -330,7 +338,8 @@ const catalog: MovieDetails[] = [
     runtime: 127,
     genres: ['Crimen', 'Thriller'],
     director: 'David Fincher',
-    cast: ['Brad Pitt', 'Morgan Freeman']
+    cast: ['Brad Pitt', 'Morgan Freeman'],
+    trailerKey: 'om5Un9X720M'
   },
   {
     source: 'tmdb',
@@ -348,12 +357,13 @@ const catalog: MovieDetails[] = [
     runtime: 110,
     genres: ['Crimen', 'Drama'],
     director: 'Luc Besson',
-    cast: ['Jean Reno', 'Natalie Portman']
+    cast: ['Jean Reno', 'Natalie Portman'],
+    trailerKey: 'om5Un9X720M'
   }
 ]
 
 let movies = [...sample]
-let settings: Settings = { source: 'libre', tmdbApiKey: '', language: 'es-ES', region: 'ES', autoUpdate: true }
+let settings: Settings = { source: 'libre', tmdbApiKey: 'demo', language: 'es-ES', region: 'ES', autoUpdate: true }
 
 const wait = <T,>(value: T): Promise<T> => new Promise((done) => setTimeout(() => done(value), 120))
 
@@ -411,7 +421,8 @@ window.filmdex = {
         runtime: found.runtime,
         genres: found.genres,
         director: found.director,
-        cast: found.cast
+        cast: found.cast,
+        trailerKey: 'om5Un9X720M'
       })
     },
     discover: (query: DiscoverQuery) => {
@@ -426,6 +437,16 @@ window.filmdex = {
           : pool
       return wait(list)
     },
+    watchProviders: () =>
+      wait({
+        link: 'https://www.themoviedb.org',
+        stream: [
+          { name: 'Netflix', logoUrl: null },
+          { name: 'Prime Video', logoUrl: null }
+        ],
+        rent: [{ name: 'Apple TV', logoUrl: null }],
+        buy: [{ name: 'Google Play', logoUrl: null }]
+      }),
     verifyTmdb: () => wait(true)
   },
   settings: {
@@ -438,7 +459,8 @@ window.filmdex = {
   app: {
     info: () => wait({ version: '0.1.0', dataDir: 'C:\\Users\\demo\\AppData\\Roaming\\filmdex' }),
     openDataDir: () => wait(undefined),
-    openExternal: () => wait(undefined)
+    openExternal: () => wait(undefined),
+    onEscape: () => () => undefined
   },
   window: {
     minimize: () => wait(undefined),

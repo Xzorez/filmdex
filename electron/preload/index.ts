@@ -8,7 +8,8 @@ import type {
   SearchResult,
   Settings,
   Source,
-  UpdateState
+  UpdateState,
+  WatchOptions
 } from '../../shared/types'
 
 type Reply<T> = { ok: true; data: T } | { ok: false; error: string }
@@ -33,6 +34,7 @@ const api = {
     search: (query: string) => call<SearchResult[]>('sources:search', query),
     details: (source: Source, sourceId: string) => call<MovieDetails>('sources:details', source, sourceId),
     discover: (query: DiscoverQuery) => call<MovieDetails[]>('sources:discover', query),
+    watchProviders: (tmdbId: number) => call<WatchOptions | null>('sources:watchProviders', tmdbId),
     verifyTmdb: (apiKey: string, language: string) => call<boolean>('sources:verifyTmdb', apiKey, language)
   },
   settings: {
@@ -42,7 +44,15 @@ const api = {
   app: {
     info: () => call<{ version: string; dataDir: string }>('app:info'),
     openDataDir: () => call<void>('app:openDataDir'),
-    openExternal: (url: string) => call<void>('app:openExternal', url)
+    openExternal: (url: string) => call<void>('app:openExternal', url),
+    /** Escape pulsado en cualquier parte de la ventana, incluidos los iframes. */
+    onEscape: (listener: () => void): (() => void) => {
+      const wrapped = (): void => listener()
+      ipcRenderer.on('app:escape', wrapped)
+      return () => {
+        ipcRenderer.removeListener('app:escape', wrapped)
+      }
+    }
   },
   window: {
     minimize: () => call<void>('window:minimize'),

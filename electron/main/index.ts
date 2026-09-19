@@ -46,6 +46,19 @@ function createWindow(): void {
   mainWindow.on('enter-full-screen', sendMaximized)
   mainWindow.on('leave-full-screen', sendMaximized)
 
+  // Con el reproductor de YouTube enfocado, las teclas se quedan dentro de el
+  // y la interfaz no se entera. Aqui se ven todas, asi que Escape se reenvia
+  // para poder cerrar el trailer. Si el video esta a pantalla completa, Escape
+  // es para salir de ella y no se toca.
+  let htmlFullScreen = false
+  mainWindow.on('enter-html-full-screen', () => (htmlFullScreen = true))
+  mainWindow.on('leave-html-full-screen', () => (htmlFullScreen = false))
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown' && input.key === 'Escape' && !htmlFullScreen) {
+      mainWindow?.webContents.send('app:escape')
+    }
+  })
+
   // Los enlaces externos se abren en el navegador, nunca dentro de la app.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) shell.openExternal(url)
@@ -116,6 +129,9 @@ function registerHandlers(): void {
     sources.details(await store.getSettings(), source, sourceId)
   )
   handle('sources:discover', async (query: DiscoverQuery) => sources.discover(await store.getSettings(), query))
+  handle('sources:watchProviders', async (tmdbId: number) =>
+    sources.watchProviders(await store.getSettings(), tmdbId)
+  )
   handle('sources:verifyTmdb', (apiKey: string, language: string) => sources.verifyTmdbKey(apiKey, language))
 
   handle('settings:get', () => store.getSettings())
@@ -165,17 +181,37 @@ if (!app.requestSingleInstanceLock()) {
     // inyectar sus propios scripts para el recargado en caliente.
     if (!isDev) {
       session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        // Solo la pagina de la app: si se aplicara tambien al reproductor de
+        // YouTube incrustado, le prohibiria cargar sus propios scripts.
+        if (details.resourceType !== 'mainFrame') {
+          callback({ responseHeaders: details.responseHeaders })
+          return
+        }
         callback({
           responseHeaders: {
             ...details.responseHeaders,
             'Content-Security-Policy': [
               "default-src 'self'; img-src 'self' https: data:; " +
-                "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'"
+                "style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; " +
+                'frame-src https://www.youtube-nocookie.com'
             ]
           }
         })
       })
     }
+
+    // YouTube rechaza con "Error 153" los videos incrustados que llegan sin
+    // cabecera de origen, y una pagina cargada desde fichero no la manda. Se
+    // anade aqui para que los trailers funcionen en la app instalada.
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+      { urls: ['https://www.youtube-nocookie.com/*', 'https://www.youtube.com/*'] },
+      (details, callback) => {
+        if (!details.requestHeaders['Referer']) {
+          details.requestHeaders['Referer'] = 'https://github.com/Xzorez/filmdex'
+        }
+        callback({ requestHeaders: details.requestHeaders })
+      }
+    )
 
     registerHandlers()
     createWindow()
