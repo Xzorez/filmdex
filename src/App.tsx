@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react'
 import type { Movie, MovieDetails, SearchResult, Settings, Status, UpdateState } from '../shared/types'
 import { CollectionView } from './components/CollectionView'
 import { HomeView } from './components/HomeView'
@@ -11,12 +11,14 @@ import { TopNav, type View } from './components/TopNav'
 import { TrailerPlayer } from './components/TrailerPlayer'
 import { IconDownload } from './components/icons'
 import { findOwned, fromSearchResult, ownedIndex, toDetails, toNewMovie } from './lib/movie'
+import { transition } from './lib/transition'
 import { clearDiscoverCache } from './lib/useDiscover'
 
 interface Toast {
   id: number
   message: string
   kind: 'ok' | 'bad'
+  leaving?: boolean
 }
 
 export function App(): JSX.Element {
@@ -39,6 +41,8 @@ export function App(): JSX.Element {
   const notify = useCallback((message: string, kind: 'ok' | 'bad' = 'ok'): void => {
     const id = Date.now() + Math.random()
     setToasts((current) => [...current, { id, message, kind }])
+    // Primero se marca la salida, que se anima; luego se quita del todo.
+    setTimeout(() => setToasts((current) => current.map((toast) => (toast.id === id ? { ...toast, leaving: true } : toast))), 3400)
     setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 3600)
   }, [])
 
@@ -80,8 +84,10 @@ export function App(): JSX.Element {
         setMovies(list)
         const movie = list.find((item) => item.id === movieId)
         if (!movie) return
-        setView('wishlist')
-        setSheet({ details: toDetails(movie), loading: false })
+        transition('open', () => {
+          setView('wishlist')
+          setSheet({ details: toDetails(movie), loading: false })
+        })
       })
     })
     return () => {
@@ -99,16 +105,36 @@ export function App(): JSX.Element {
     return () => element.removeEventListener('scroll', onScroll)
   }, [ready])
 
-  // Cada seccion empieza por arriba.
-  useEffect(() => {
+  // Cada sección empieza por arriba. Antes de pintar, para que la transición
+  // fotografíe ya la sección nueva en su sitio y no dé un salto después.
+  useLayoutEffect(() => {
     scroller.current?.scrollTo({ top: 0 })
   }, [view])
+
+  /**
+   * Cambiar de sección con un clic se anima; escribir en el buscador no: cada
+   * tecla lanzaría una transición y se sentiría lento.
+   */
+  const navigate = (next: View): void => {
+    if (next === view) return
+    if (next === 'search') setView(next)
+    else transition('view', () => setView(next))
+  }
+
+  const closeSheet = (): void => transition('close', () => setSheet(null))
+  const closeTonight = (): void => transition('close', () => setTonight(false))
+  const closeTrailer = (): void => transition('close', () => setTrailer(null))
 
   const owned = ownedIndex(movies)
 
   /** Abre la ficha y, si faltan datos, los completa sin bloquear. */
-  const openDetails = async (base: MovieDetails, needsFetch: boolean): Promise<void> => {
-    setSheet({ details: base, loading: needsFetch })
+  const openDetails = async (base: MovieDetails, needsFetch: boolean, alsoClose?: () => void): Promise<void> => {
+    // Lo que se cierra a la vez (el sorteo) va dentro de la misma transición:
+    // así la carátula del sorteo es la que se expande hasta la ficha.
+    transition('open', () => {
+      alsoClose?.()
+      setSheet({ details: base, loading: needsFetch })
+    })
     if (!needsFetch) return
     try {
       const full = await window.filmdex.sources.details(base.source, base.sourceId)
@@ -136,7 +162,7 @@ export function App(): JSX.Element {
     // Las guardadas antes de existir los trailers no saben si tienen uno: se
     // pregunta una vez en segundo plano y se apunta, sea cual sea la respuesta.
     const unknownTrailer = movie.trailerKey === undefined && details.sourceId !== ''
-    setSheet({ details, loading: unknownTrailer })
+    transition('open', () => setSheet({ details, loading: unknownTrailer }))
     if (!unknownTrailer) return
 
     window.filmdex.sources
@@ -182,7 +208,7 @@ export function App(): JSX.Element {
   }
 
   const deleteMovie = async (movie: Movie): Promise<void> => {
-    setSheet(null)
+    closeSheet()
     setMovies((current) => current.filter((item) => item.id !== movie.id))
     try {
       await window.filmdex.library.remove(movie.id)
@@ -239,11 +265,11 @@ export function App(): JSX.Element {
     <div className="app">
       <TopNav
         view={view}
-        onChange={setView}
+        onChange={navigate}
         query={query}
         onQuery={setQuery}
         scrolled={scrolled || view !== 'home'}
-        onSurprise={() => setTonight(true)}
+        onSurprise={() => transition('open', () => setTonight(true))}
       />
 
       {updateBanner && (
@@ -279,6 +305,7 @@ export function App(): JSX.Element {
             onQuickAdd={(details) => void addMovie(details, 'owned')}
             onTrailer={playTrailer}
             busyId={busyId}
+            paused={Boolean(sheet || tonight || trailer)}
           />
         )}
 
@@ -287,8 +314,8 @@ export function App(): JSX.Element {
             movies={movies}
             status="owned"
             onOpen={openFromCollection}
-            onDiscover={() => setView('home')}
-            onStats={() => setView('stats')}
+            onDiscover={() => navigate('home')}
+            onStats={() => navigate('stats')}
           />
         )}
 
@@ -297,8 +324,8 @@ export function App(): JSX.Element {
             movies={movies}
             status="wishlist"
             onOpen={openFromCollection}
-            onDiscover={() => setView('home')}
-            onStats={() => setView('stats')}
+            onDiscover={() => navigate('home')}
+            onStats={() => navigate('stats')}
           />
         )}
 
@@ -310,7 +337,7 @@ export function App(): JSX.Element {
             movies={movies}
             needsTmdbKey={needsTmdbKey}
             onOpen={openFromSearch}
-            onGoSettings={() => setView('settings')}
+            onGoSettings={() => navigate('settings')}
           />
         )}
 
@@ -346,7 +373,7 @@ export function App(): JSX.Element {
           owned={sheetOwned}
           loading={sheet.loading}
           busy={busyId === sheet.details.sourceId}
-          onClose={() => setSheet(null)}
+          onClose={closeSheet}
           onAdd={(status) => void addMovie(sheet.details, status)}
           onPatch={patchMovie}
           onDelete={(movie) => void deleteMovie(movie)}
@@ -364,22 +391,19 @@ export function App(): JSX.Element {
       {tonight && (
         <TonightPicker
           movies={movies}
-          onClose={() => setTonight(false)}
-          onOpen={(movie) => {
-            setTonight(false)
-            openFromCatalog(movie)
-          }}
+          onClose={closeTonight}
+          onOpen={(movie) => void openDetails(movie, true, () => setTonight(false))}
           onTrailer={playTrailer}
         />
       )}
 
       {trailer && (
-        <TrailerPlayer youtubeKey={trailer.key} title={trailer.title} onClose={() => setTrailer(null)} />
+        <TrailerPlayer youtubeKey={trailer.key} title={trailer.title} onClose={closeTrailer} />
       )}
 
       <div className="toasts">
         {toasts.map((toast) => (
-          <div key={toast.id} className={`toast${toast.kind === 'bad' ? ' bad' : ''}`}>
+          <div key={toast.id} className={`toast${toast.kind === 'bad' ? ' bad' : ''}${toast.leaving ? ' leaving' : ''}`}>
             {toast.message}
           </div>
         ))}

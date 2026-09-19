@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties, type JSX, type ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type JSX, type ReactNode } from 'react'
 import { IconChevronLeft, IconChevronRight } from './icons'
 
 interface Props {
@@ -15,6 +15,27 @@ interface Props {
 /** Carrusel horizontal con flechas que aparecen al pasar por encima. */
 export function Row({ title, note, loading, children, count, index = 0 }: Props): JSX.Element | null {
   const track = useRef<HTMLDivElement>(null)
+  const viewport = useRef<HTMLDivElement>(null)
+
+  // Si queda fila por ver a cada lado: funde ese borde y deja su flecha. Se
+  // escribe directamente en el DOM para no repintar la fila en cada píxel.
+  useEffect(() => {
+    const element = track.current
+    const frame = viewport.current
+    if (!element || !frame) return
+    const update = (): void => {
+      frame.toggleAttribute('data-more-left', element.scrollLeft > 4)
+      frame.toggleAttribute('data-more-right', element.scrollLeft + element.clientWidth < element.scrollWidth - 4)
+    }
+    update()
+    element.addEventListener('scroll', update, { passive: true })
+    const resize = new ResizeObserver(update)
+    resize.observe(element)
+    return () => {
+      element.removeEventListener('scroll', update)
+      resize.disconnect()
+    }
+  }, [loading, count])
 
   if (!loading && count === 0) return null
 
@@ -39,7 +60,7 @@ export function Row({ title, note, loading, children, count, index = 0 }: Props)
           ))}
         </div>
       ) : (
-        <div className="row-viewport">
+        <div className="row-viewport" ref={viewport}>
           <button className="row-arrow left" onClick={() => slide(-1)} aria-label="Anterior">
             <IconChevronLeft />
           </button>

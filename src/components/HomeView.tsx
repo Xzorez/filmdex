@@ -8,6 +8,12 @@ import { Hero } from './Hero'
 import { Row } from './Row'
 import { IconFilm } from './icons'
 
+/** Cuántas películas rotan en la portada. */
+const FEATURED = 5
+
+/** Cuánto se espera antes de preparar la siguiente destacada. */
+const PREFETCH_DELAY_MS = 2500
+
 /** Fichas completas de las destacadas ya pedidas: volver al inicio no las repite. */
 const featureDetails = new Map<string, MovieDetails>()
 
@@ -19,9 +25,11 @@ interface Props {
   onQuickAdd: (movie: MovieDetails) => void
   onTrailer: (movie: MovieDetails) => void
   busyId: string | null
+  /** Hay algo abierto encima (ficha, sorteo, tráiler): la portada no rota. */
+  paused: boolean
 }
 
-export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer, busyId }: Props): JSX.Element {
+export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer, busyId, paused }: Props): JSX.Element {
   const owned = useMemo(() => ownedIndex(movies), [movies])
   const favourites = useMemo(() => favouriteGenres(movies), [movies])
 
@@ -35,8 +43,16 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
   const forYou = useDiscover('popular', topGenre, genre === null && topGenre !== null)
   const second = useDiscover('rated', secondGenre, genre === null && secondGenre !== null)
 
-  // La portada sale de la primera lista que llegue con algo.
-  const feature = popular.movies[0] ?? rated.movies[0] ?? null
+  // La portada rota entre las primeras de la primera lista que llegue.
+  const features = useMemo(
+    () => (popular.movies.length > 0 ? popular.movies : rated.movies).filter((movie) => movie.backdropUrl ?? movie.posterUrl).slice(0, FEATURED),
+    [popular.movies, rated.movies]
+  )
+  const [slot, setSlot] = useState(0)
+  const [hovering, setHovering] = useState(false)
+  // Otro género, otras destacadas: se empieza por la primera.
+  useEffect(() => setSlot(0), [features])
+  const feature = features[slot % Math.max(features.length, 1)] ?? null
 
   // La ficha del catálogo trae la sinopsis en inglés; la completa la tiene en
   // español. Se pide aparte y la portada espera a tenerla para enseñarla, en
@@ -68,9 +84,24 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
 
   const featured = feature && full?.sourceId === feature.sourceId ? { ...feature, ...full } : feature
 
-  /** La destacada ya ocupa la portada: no se repite en la primera fila. */
-  const withoutFeature = (list: MovieDetails[]): MovieDetails[] =>
-    feature ? list.filter((movie) => movie.sourceId !== feature.sourceId) : list
+  // La siguiente se prepara mientras se ve esta: su ficha y su imagen, para que
+  // al rotar el fundido no tenga que esperar a la red.
+  useEffect(() => {
+    if (features.length < 2) return
+    const next = features[(slot + 1) % features.length]
+    // Con un respiro: que no le quite red a la imagen que se está viendo.
+    const timer = window.setTimeout(() => {
+      const image = next.backdropUrl ?? next.posterUrl
+      if (image) new Image().src = image
+      if (!featureDetails.has(next.sourceId)) {
+        void window.filmdex.sources
+          .details(next.source, next.sourceId)
+          .then((details) => featureDetails.set(next.sourceId, details))
+          .catch(() => undefined)
+      }
+    }, PREFETCH_DELAY_MS)
+    return () => window.clearTimeout(timer)
+  }, [slot, features])
 
   const renderCards = (list: MovieDetails[]): JSX.Element[] =>
     list
@@ -119,6 +150,14 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
           onOpen={() => onOpen(featured)}
           onAdd={() => onQuickAdd(featured)}
           onTrailer={() => onTrailer(featured)}
+          onHover={setHovering}
+          rotation={{
+            index: slot % Math.max(features.length, 1),
+            count: features.length,
+            paused: paused || hovering,
+            onSelect: setSlot,
+            onDone: () => setSlot((current) => (current + 1) % features.length)
+          }}
           busy={busyId === feature.sourceId}
         />
       ) : (
@@ -157,9 +196,9 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
           index={1}
           title={genre ? `${labelOf(genre)}: lo más visto` : 'Populares ahora'}
           loading={popular.loading}
-          count={withoutFeature(popular.movies).length}
+          count={popular.movies.length}
         >
-          {renderCards(withoutFeature(popular.movies))}
+          {renderCards(popular.movies)}
         </Row>
 
         <Row

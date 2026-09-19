@@ -1,4 +1,5 @@
 import { useEffect, useState, type JSX } from 'react'
+import { useReveal } from '../lib/useReveal'
 
 interface Props {
   backdropUrl: string | null
@@ -19,6 +20,7 @@ export function Backdrop({ backdropUrl, posterUrl, title }: Props): JSX.Element 
   useEffect(() => setIndex(0), [backdropUrl, posterUrl])
 
   const current = sources[index]
+  const reveal = useReveal(current ?? null)
 
   if (!current) {
     return (
@@ -28,5 +30,23 @@ export function Backdrop({ backdropUrl, posterUrl, title }: Props): JSX.Element 
     )
   }
 
-  return <img src={current} alt="" onError={() => setIndex((value) => value + 1)} />
+  // Mientras llega el fondo, la carátula (casi siempre ya en caché) hace de
+  // fondo provisional, difuminada. Así la imagen nunca se queda en blanco a
+  // mitad de una transición.
+  const placeholder = posterUrl && current !== posterUrl && reveal.state === 'waiting' ? posterUrl : null
+
+  return (
+    <>
+      {placeholder && <img className="backdrop-placeholder" src={placeholder} alt="" aria-hidden="true" />}
+    <img
+      ref={reveal.ref}
+      src={current}
+      alt=""
+      decoding="async"
+      data-reveal={reveal.state}
+      onLoad={reveal.onLoad}
+      onError={() => setIndex((value) => value + 1)}
+    />
+    </>
+  )
 }

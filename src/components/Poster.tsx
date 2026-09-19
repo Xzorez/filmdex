@@ -1,4 +1,5 @@
 import { useEffect, useState, type JSX } from 'react'
+import { useReveal } from '../lib/useReveal'
 
 interface Props {
   url: string | null
@@ -12,6 +13,7 @@ interface Props {
  */
 export function Poster({ url, title, className }: Props): JSX.Element {
   const [broken, setBroken] = useState(false)
+  const reveal = useReveal(url)
 
   useEffect(() => setBroken(false), [url])
 
@@ -19,5 +21,17 @@ export function Poster({ url, title, className }: Props): JSX.Element {
     return <div className={`poster-fallback${className ? ` ${className}` : ''}`}>{title}</div>
   }
 
-  return <img className={className} src={url} alt="" loading="lazy" onError={() => setBroken(true)} />
+  return (
+    <img
+      ref={reveal.ref}
+      className={className}
+      src={url}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      data-reveal={reveal.state}
+      onLoad={reveal.onLoad}
+      onError={() => setBroken(true)}
+    />
+  )
 }

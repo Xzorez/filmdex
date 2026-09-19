@@ -6,7 +6,7 @@ Todo se guarda **solo en tu ordenador**. No hay cuentas, ni servidores, ni nada 
 
 ## Qué hace
 
-- **Descubre qué ver**: portada destacada y filas por categoría, filtrables por 17 géneros.
+- **Descubre qué ver**: una portada que rota sola entre cinco destacadas (se para al pasar el ratón) y filas por categoría, filtrables por 17 géneros.
 - **Te recomienda**: deduce tus géneros favoritos de lo que ya tienes — dando más peso a lo que puntuaste alto — y te propone películas de esos géneros que aún no tienes.
 - **Tráileres** dentro de la app, desde la portada o desde cualquier ficha. Arrancan al instante en silencio; el altavoz del reproductor activa el sonido.
 - **Dónde verla**: en qué plataformas está cada película en tu país (incluida en la suscripción, alquiler o compra). Los datos son de JustWatch a través de TMDB, así que necesita la clave de TMDB guardada, uses la fuente que uses.
@@ -19,6 +19,7 @@ Todo se guarda **solo en tu ordenador**. No hay cuentas, ni servidores, ni nada 
 - Tu propia nota del 1 al 10, marcar como vista con fecha y notas libres por película.
 - **Copia de seguridad automática**: una copia diaria de la colección en la carpeta que elijas (mejor de OneDrive o Dropbox), con las siete últimas por fecha. Si la colección aparece vacía de repente, no sobrescribe la copia buena. «Restaurar» la trae de vuelta, también en otro ordenador. La clave de TMDB no se copia.
 - Exportar e importar la colección en JSON para tener copia o llevártela a otro equipo.
+- **Se mueve como una app de cine**: la carátula que pulsas se transforma en la ficha y vuelve a su sitio al cerrarla, las secciones se funden entre sí, las imágenes se enfocan al cargar y las filas encajan tarjeta a tarjeta. Si en Windows tienes activado reducir las animaciones, todo pasa a fundidos suaves y la portada deja de rotar sola.
 - Ventana sin el marco de Windows: la barra de título y los botones de minimizar, maximizar y cerrar los dibuja la propia app.
 - Se actualiza sola: cuando se publica una versión nueva en GitHub, la app la detecta, la descarga y la instala al reiniciar.
 

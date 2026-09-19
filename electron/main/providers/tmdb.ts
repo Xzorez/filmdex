@@ -110,7 +110,7 @@ export async function details(settings: Settings, sourceId: string): Promise<Mov
   return {
     ...toSearchResult(raw),
     posterUrl: raw.poster_path ? `${IMAGES}/w500${raw.poster_path}` : null,
-    backdropUrl: raw.backdrop_path ? `${IMAGES}/w780${raw.backdrop_path}` : null,
+    backdropUrl: raw.backdrop_path ? `${IMAGES}/w1280${raw.backdrop_path}` : null,
     runtime: raw.runtime ?? null,
     genres: (raw.genres ?? []).map((genre) => genre.name).filter(Boolean),
     director,
@@ -142,7 +142,7 @@ export async function localizedOverview(settings: Settings, tmdbId: number): Pro
 function toCatalogDetails(raw: TmdbMovie): MovieDetails {
   return {
     ...toSearchResult(raw),
-    backdropUrl: raw.backdrop_path ? `${IMAGES}/w780${raw.backdrop_path}` : null,
+    backdropUrl: raw.backdrop_path ? `${IMAGES}/w1280${raw.backdrop_path}` : null,
     runtime: null,
     genres: [],
     director: null,
@@ -251,7 +251,7 @@ export async function discover(settings: Settings, query: DiscoverQuery): Promis
   // discover no trae duración ni reparto: se completan al abrir la ficha.
   return (data.results ?? []).slice(0, 24).map((raw) => ({
     ...toSearchResult(raw),
-    backdropUrl: raw.backdrop_path ? `${IMAGES}/w780${raw.backdrop_path}` : null,
+    backdropUrl: raw.backdrop_path ? `${IMAGES}/w1280${raw.backdrop_path}` : null,
     runtime: null,
     genres: [],
     director: null,

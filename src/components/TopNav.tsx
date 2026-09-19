@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type JSX } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react'
 import { WindowControls } from './WindowControls'
 import { IconClose, IconSearch, IconSettings, IconSparkle } from './icons'
 
@@ -22,6 +22,23 @@ const LINKS: { id: View; label: string }[] = [
 export function TopNav({ view, onChange, query, onQuery, scrolled, onSurprise }: Props): JSX.Element {
   const [open, setOpen] = useState(view === 'search')
   const input = useRef<HTMLInputElement>(null)
+  const links = useRef<HTMLDivElement>(null)
+  const [bar, setBar] = useState<{ x: number; width: number; visible: boolean }>({ x: 0, width: 0, visible: false })
+
+  // La raya roja se desliza hasta la sección activa. Se mide después de pintar
+  // la negrita, que cambia el ancho del enlace. Fuera de las secciones (ajustes,
+  // búsqueda) se apaga donde está, sin volver al principio.
+  useLayoutEffect(() => {
+    const measure = (): void => {
+      const active = links.current?.querySelector<HTMLElement>('.nav-link.active')
+      setBar((current) =>
+        active ? { x: active.offsetLeft, width: active.offsetWidth, visible: true } : { ...current, visible: false }
+      )
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [view])
 
   useEffect(() => {
     if (open) input.current?.focus()
@@ -44,7 +61,7 @@ export function TopNav({ view, onChange, query, onQuery, scrolled, onSurprise }:
         Filmdex
       </button>
 
-      <div className="nav-links">
+      <div className="nav-links" ref={links}>
         {LINKS.map((link) => (
           <button
             key={link.id}
@@ -58,6 +75,11 @@ export function TopNav({ view, onChange, query, onQuery, scrolled, onSurprise }:
           <IconSparkle />
           Sorpréndeme
         </button>
+        <span
+          className="nav-indicator"
+          aria-hidden="true"
+          style={{ transform: `translateX(${bar.x}px) scaleX(${bar.width / 100})`, opacity: bar.visible ? 1 : 0 }}
+        />
       </div>
 
       <div className="nav-right">

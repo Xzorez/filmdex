@@ -99,8 +99,10 @@ export function MovieSheet({
               {owned ? (
                 <>
                   <button className="btn" onClick={toggleWatched}>
-                    {owned.watched ? <IconCheck /> : <IconEye />}
-                    {owned.watched ? 'Vista' : 'Marcar como vista'}
+                    <span className="btn-swap" key={owned.watched ? 'vista' : 'pendiente'}>
+                      {owned.watched ? <IconCheck /> : <IconEye />}
+                      {owned.watched ? 'Vista' : 'Marcar como vista'}
+                    </span>
                   </button>
                   {owned.status === 'wishlist' && (
                     <button className="btn btn-brand" onClick={() => onPatch(owned.id, { status: 'owned' })}>

@@ -1,4 +1,5 @@
 import type { CSSProperties, JSX } from 'react'
+import { rememberOrigin } from '../lib/transition'
 import { Poster } from './Poster'
 import { IconCheck } from './icons'
 
@@ -22,7 +23,10 @@ export function Card({ title, year, posterUrl, owned, score, tag, index, onOpen 
   return (
     <button
       className="card"
-      onClick={onOpen}
+      onClick={(event) => {
+        rememberOrigin(event.currentTarget)
+        onOpen()
+      }}
       title={title}
       // El escalonado se corta pronto: con una colección larga, si no, las
       // últimas fichas tardarian segundos en aparecer.

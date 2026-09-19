@@ -16,6 +16,18 @@
   --radius: 4px;
   --shadow: 0 10px 34px rgba(0, 0, 0, 0.7);
   --ease: cubic-bezier(0.2, 0, 0.2, 1);
+  /* Movimiento: llegadas que frenan con decision, y una curva mas seca para pulsar. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-press: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Para lo que se transforma en pantalla: arranca suave y frena largo. */
+  --ease-morph: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 140ms;
+  --dur-state: 220ms;
+  --dur-view: 420ms;
+  /* Cuanto sube o se encoge lo que entra. Con reducir movimiento pasa a nada. */
+  --rise: 14px;
+  --settle: 0.975;
+  --focus-blur: 10px;
 }
 
 * {
@@ -93,7 +105,7 @@ button {
   padding: 0 var(--gutter);
   z-index: 50;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
-  transition: background-color 0.3s var(--ease);
+  isolation: isolate;
   /* La barra entera hace de zona de arrastre de la ventana. */
   -webkit-app-region: drag;
   user-select: none;
@@ -106,9 +118,39 @@ button {
   -webkit-app-region: no-drag;
 }
 
-.nav.solid {
+.nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity 280ms var(--ease);
+}
+
+.nav.solid::before {
+  opacity: 1;
+}
+
+/* Indicador bajo la seccion activa: se desliza de un enlace a otro. */
+.nav-links {
+  position: relative;
+}
+
+.nav-indicator {
+  position: absolute;
+  left: 0;
+  bottom: -9px;
+  width: 100px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand);
+  transform-origin: left center;
+  transition:
+    transform 380ms var(--ease-out),
+    opacity 200ms var(--ease);
+  pointer-events: none;
 }
 
 .logo {
@@ -399,7 +441,10 @@ button {
   font-weight: 600;
   font-size: 14.5px;
   white-space: nowrap;
-  transition: background 0.15s var(--ease), opacity 0.15s var(--ease), transform 0.09s var(--ease);
+  transition:
+    background 150ms var(--ease),
+    opacity 150ms var(--ease),
+    transform var(--dur-press) var(--ease-press);
 }
 
 .btn:hover:not(:disabled) {
@@ -508,9 +553,29 @@ button {
   gap: 8px;
   overflow-x: auto;
   scroll-behavior: smooth;
+  /* Al soltar, la fila encaja con la primera tarjeta alineada al margen. */
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
   padding: 26px var(--gutter);
   margin: -26px 0;
   scrollbar-width: none;
+}
+
+.row-track .card {
+  scroll-snap-align: start;
+}
+
+/* Cuando queda fila por ver, el borde se funde en vez de cortar la tarjeta. */
+.row-viewport[data-more-right] .row-track {
+  mask-image: linear-gradient(to right, #000 calc(100% - 90px), transparent);
+}
+
+.row-viewport[data-more-left] .row-track {
+  mask-image: linear-gradient(to left, #000 calc(100% - 90px), transparent);
+}
+
+.row-viewport[data-more-left][data-more-right] .row-track {
+  mask-image: linear-gradient(to right, transparent, #000 90px, #000 calc(100% - 90px), transparent);
 }
 
 .row-track::-webkit-scrollbar {
@@ -533,6 +598,13 @@ button {
 
 .row-viewport:hover .row-arrow {
   opacity: 1;
+}
+
+/* Sin nada hacia ese lado, su flecha sobra. */
+.row-viewport:not([data-more-left]) .row-arrow.left,
+.row-viewport:not([data-more-right]) .row-arrow.right {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .row-arrow:hover {
@@ -562,12 +634,19 @@ button {
   flex: 0 0 auto;
   width: 168px;
   text-align: left;
-  transition: transform 0.28s var(--ease);
+  transition: transform 260ms var(--ease-out);
 }
 
-.card:hover {
-  transform: scale(1.09);
-  z-index: 2;
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: scale(1.09);
+    z-index: 2;
+  }
+}
+
+.card:active {
+  transform: scale(1.03);
+  transition-duration: var(--dur-press);
 }
 
 .card-art {
@@ -576,11 +655,21 @@ button {
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface-2);
-  transition: box-shadow 0.28s var(--ease);
 }
 
-.card:hover .card-art {
+.card-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   box-shadow: var(--shadow);
+  opacity: 0;
+  transition: opacity 260ms var(--ease-out);
+  pointer-events: none;
+}
+
+.card:hover .card-art::after {
+  opacity: 1;
 }
 
 .card-art img {
@@ -695,7 +784,11 @@ button {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-dim);
   font-size: 13px;
-  transition: all 0.15s var(--ease);
+  transition:
+    color 150ms var(--ease),
+    background 150ms var(--ease),
+    border-color 150ms var(--ease),
+    transform var(--dur-press) var(--ease-press);
   white-space: nowrap;
 }
 
@@ -807,10 +900,45 @@ button {
 
 /* ---------- Movimiento ---------- */
 
+/*
+ * Enfoque de camara: las imagenes esperan desenfocadas y un poco mas cerca, y se
+ * enfocan al cargar. El desenfoque queda dentro de cada imagen, que ya recorta
+ * su contenedor, asi que no se pinta de mas.
+ */
+img[data-reveal] {
+  transition:
+    opacity 260ms var(--ease-out),
+    filter 380ms var(--ease-out),
+    transform 520ms var(--ease-out);
+}
+
+img[data-reveal='waiting'] {
+  opacity: 0;
+  filter: blur(var(--focus-blur));
+  transform: scale(1.04);
+}
+
+/* Fondo provisional: la caratula difuminada mientras llega la imagen buena. */
+.backdrop-placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(28px) brightness(0.55) saturate(1.2);
+  transform: scale(1.15);
+}
+
+.hero-art img:not(.backdrop-placeholder),
+.sheet-art img:not(.backdrop-placeholder) {
+  position: relative;
+}
+
+
 @keyframes enter-up {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(var(--rise));
   }
 }
 
@@ -836,7 +964,7 @@ button {
 
 /* Las filas llegan una detras de otra, no todas de golpe. */
 .row {
-  animation: enter-up 0.5s var(--ease) both;
+  animation: enter-up 0.5s var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 65ms);
 }
 
@@ -845,32 +973,32 @@ button {
 }
 
 .hero-kicker {
-  animation: enter-up 0.55s var(--ease) both;
+  animation: enter-up 0.6s var(--ease-out) both;
   animation-delay: 0.04s;
 }
 .hero-title {
-  animation: enter-up 0.55s var(--ease) both;
+  animation: enter-up 0.6s var(--ease-out) both;
   animation-delay: 0.1s;
 }
 .hero-facts {
-  animation: enter-up 0.55s var(--ease) both;
+  animation: enter-up 0.6s var(--ease-out) both;
   animation-delay: 0.16s;
 }
 .hero-overview {
-  animation: enter-up 0.55s var(--ease) both;
+  animation: enter-up 0.6s var(--ease-out) both;
   animation-delay: 0.22s;
 }
 .hero-actions {
-  animation: enter-up 0.55s var(--ease) both;
+  animation: enter-up 0.6s var(--ease-out) both;
   animation-delay: 0.28s;
 }
 
 .genre-bar {
-  animation: enter-up 0.45s var(--ease) both;
+  animation: enter-up 0.5s var(--ease-out) both;
 }
 
 .grid .card {
-  animation: enter-up 0.4s var(--ease) both;
+  animation: enter-up 0.45s var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 18ms);
 }
 
@@ -887,16 +1015,262 @@ button {
   transform: scale(1);
 }
 
-/* Quien prefiera menos movimiento no ve ninguno. */
+/*
+ * Reducir movimiento no es quitarlo todo: se quitan desplazamientos, zooms y
+ * desenfoques, y se conservan los fundidos, que explican que algo ha cambiado.
+ */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
+  :root {
+    --rise: 0px;
+    --settle: 1;
+    --focus-blur: 0px;
+  }
+
+  .hero-art img,
+  .hero-dots .hero-dot-fill,
+  .skeleton-card::after,
+  .watch-logo.skeleton::after {
+    animation: none;
+  }
+
+  .card:hover,
+  .card:active,
+  .grid .card:hover {
+    transform: none;
+  }
+
+  .row-track {
+    scroll-behavior: auto;
+  }
+
+  img[data-reveal='waiting'] {
+    transform: none;
+  }
+
+  .row,
+  .grid .card,
+  .stats-tile,
+  .stats-card {
     animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Portada viva ---------- */
+
+.hero-layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* La nueva destacada se funde sobre la anterior, que espera debajo. */
+.hero-layer.entering {
+  animation: enter-fade 900ms var(--ease) both;
+}
+
+.hero-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 26px;
+}
+
+/* Cada barra es un boton grande para el dedo, con la linea fina dentro. */
+.hero-dot {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  display: grid;
+  align-items: center;
+}
+
+.hero-dot::before {
+  content: '';
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+  transition: background 200ms var(--ease);
+}
+
+.hero-dot:hover::before,
+.hero-dot.seen::before {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/*
+ * El relleno de la barra activa es el propio temporizador: cuando termina, pasa
+ * a la siguiente. Movimiento constante, asi que lineal.
+ */
+.hero-dot-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 2px;
+  background: #fff;
+  transform-origin: left center;
+  animation: hero-progress 9s linear both;
+}
+
+@keyframes hero-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Cambio de estado de un boton: el contenido nuevo aparece enfocandose. */
+.btn-swap {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  animation: swap-in 240ms var(--ease-out) both;
+}
+
+@keyframes swap-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(calc(var(--rise) * 0.3));
+  }
+}
+
+/* ---------- Transiciones entre estados ---------- */
+
+/*
+ * La barra superior no se funde entre estados: se enseña solo la nueva, viva,
+ * para que la raya roja se vea viajar y no quede su fantasma en el enlace viejo.
+ */
+::view-transition-old(nav) {
+  display: none;
+}
+
+::view-transition-new(nav) {
+  animation: none;
+}
+
+/*
+ * La ficha, el sorteo y el trailer tienen nombre propio: asi la transicion los
+ * anima por separado del resto. La barra superior tambien, para que se quede
+ * quieta mientras cambia lo de debajo.
+ */
+.sheet {
+  view-transition-name: movie;
+}
+
+.tonight {
+  view-transition-name: tonight;
+}
+
+.trailer-frame {
+  view-transition-name: trailer;
+}
+
+.nav {
+  view-transition-name: nav;
+}
+
+/* Si la transicion se encarga de entrar, las entradas CSS sobrarian. */
+:root[data-vt] .overlay,
+:root[data-vt] .sheet,
+:root[data-vt] .tonight,
+:root[data-vt] .view-enter {
+  animation: none;
+}
+
+/* De tarjeta a ficha: la caja crece con decision y las imagenes se funden. */
+::view-transition-group(movie) {
+  animation-duration: 460ms;
+  animation-timing-function: var(--ease-morph);
+}
+
+::view-transition-old(movie),
+::view-transition-new(movie) {
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+::view-transition-old(movie) {
+  animation: vt-fade-out 200ms var(--ease) both;
+}
+
+::view-transition-new(movie) {
+  animation: vt-fade-in 300ms var(--ease-out) 40ms both;
+}
+
+/* Al cerrar va mas rapido que al abrir: responder es lo que importa. */
+:root:active-view-transition-type(close)::view-transition-group(movie) {
+  animation-duration: 300ms;
+}
+
+:root:active-view-transition-type(close)::view-transition-new(movie) {
+  animation: vt-fade-in 200ms var(--ease-out) both;
+}
+
+/* El fondo oscuro de las fichas llega y se va con un fundido. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+}
+
+:root:active-view-transition-type(close)::view-transition-old(root),
+:root:active-view-transition-type(close)::view-transition-new(root) {
+  animation-duration: 200ms;
+}
+
+/* Dialogos sin tarjeta de origen: se acercan desde un poco mas lejos. */
+::view-transition-new(tonight),
+::view-transition-new(trailer) {
+  animation: vt-pop-in 320ms var(--ease-out) both;
+}
+
+::view-transition-old(tonight),
+::view-transition-old(trailer) {
+  animation: vt-pop-out 180ms var(--ease) both;
+}
+
+/* Cambio de seccion: lo viejo se aparta rapido y lo nuevo llega subiendo. */
+:root:active-view-transition-type(view)::view-transition-old(root) {
+  animation: vt-fade-out 150ms var(--ease) both;
+}
+
+:root:active-view-transition-type(view)::view-transition-new(root) {
+  animation: vt-rise-in 360ms var(--ease-out) both;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rise));
+  }
+}
+
+@keyframes vt-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes vt-pop-out {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
   }
 }
 
@@ -966,19 +1340,30 @@ button {
   overflow: hidden;
 }
 
+/* El brillo se mueve con transform, que no obliga a repintar la tarjeta. */
 .skeleton-card {
+  position: relative;
   flex: 0 0 auto;
   width: 168px;
   aspect-ratio: 2 / 3;
   border-radius: var(--radius);
-  background: linear-gradient(100deg, #1d1d1d 30%, #2a2a2a 50%, #1d1d1d 70%);
-  background-size: 220% 100%;
+  background: #1d1d1d;
+  overflow: hidden;
+}
+
+.skeleton-card::after,
+.watch-logo.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.06) 50%, transparent 75%);
+  transform: translateX(-100%);
   animation: shimmer 1.4s infinite linear;
 }
 
 @keyframes shimmer {
   to {
-    background-position: -220% 0;
+    transform: translateX(100%);
   }
 }
 
@@ -1013,7 +1398,7 @@ button {
 
 @keyframes rise {
   from {
-    transform: translateY(18px) scale(0.975);
+    transform: translateY(calc(var(--rise) * 1.3)) scale(var(--settle));
     opacity: 0;
   }
 }
@@ -1188,6 +1573,12 @@ button {
   transform: scale(1.15);
 }
 
+/* Al puntuar, la estrella cede un poco: la nota se ha oído. */
+.rating button:active {
+  transform: scale(0.85);
+  transition-duration: var(--dur-press);
+}
+
 .rating button.on {
   color: var(--brand);
 }
@@ -1274,7 +1665,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 18px 20px;
-  animation: enter-up 0.45s var(--ease) both;
+  animation: enter-up 0.5s var(--ease-out) both;
 }
 
 .stats-tile-label {
@@ -1310,7 +1701,7 @@ button {
   border-radius: 6px;
   padding: 20px 22px 16px;
   min-width: 0;
-  animation: enter-up 0.5s var(--ease) both;
+  animation: enter-up 0.5s var(--ease-out) both;
 }
 
 .stats-card.wide {
@@ -1690,9 +2081,9 @@ button {
 }
 
 .watch-logo.skeleton {
-  background: linear-gradient(100deg, #1d1d1d 30%, #2a2a2a 50%, #1d1d1d 70%);
-  background-size: 220% 100%;
-  animation: shimmer 1.4s infinite linear;
+  position: relative;
+  overflow: hidden;
+  background: #1d1d1d;
 }
 
 .watch-note {
@@ -1829,7 +2220,7 @@ button {
   font-weight: 800;
   letter-spacing: -0.7px;
   line-height: 1.1;
-  animation: enter-up 0.4s var(--ease) both;
+  animation: enter-up 0.45s var(--ease-out) both;
 }
 
 .tonight-info p {
@@ -1841,7 +2232,7 @@ button {
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  animation: enter-up 0.45s var(--ease) both;
+  animation: enter-up 0.5s var(--ease-out) both;
   animation-delay: 0.08s;
 }
 
@@ -1856,7 +2247,7 @@ button {
 .tonight-facts {
   font-size: 14px;
   color: var(--text-dim);
-  animation: enter-up 0.4s var(--ease) both;
+  animation: enter-up 0.45s var(--ease-out) both;
   animation-delay: 0.04s;
 }
 
@@ -2152,7 +2543,19 @@ button {
   font-weight: 600;
   box-shadow: var(--shadow);
   max-width: 420px;
-  animation: rise 0.18s var(--ease);
+  animation: rise 260ms var(--ease-out);
+}
+
+/* Se van mas rapido de lo que llegan, hacia donde vinieron. */
+.toast.leaving {
+  animation: toast-out 180ms var(--ease) forwards;
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
 }
 
 .toast.bad {

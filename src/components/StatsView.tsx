@@ -1,6 +1,7 @@
 import { useMemo, type JSX } from 'react'
 import type { Movie } from '../../shared/types'
 import { computeStats } from '../lib/stats'
+import { rememberOrigin } from '../lib/transition'
 import { BarChart, ColumnChart } from './Charts'
 import { Poster } from './Poster'
 import { IconFilm } from './icons'
@@ -114,7 +115,12 @@ export function StatsView({ movies, onOpen }: Props): JSX.Element {
               <ol className="stats-best">
                 {stats.best.map((movie) => (
                   <li key={movie.id}>
-                    <button onClick={() => onOpen(movie)}>
+                    <button
+                      onClick={(event) => {
+                        rememberOrigin(event.currentTarget)
+                        onOpen(movie)
+                      }}
+                    >
                       <span className="stats-best-poster">
                         <Poster url={movie.posterUrl} title={movie.title} />
                       </span>

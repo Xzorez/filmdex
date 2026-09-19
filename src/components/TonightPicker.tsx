@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'rea
 import { GENRES, type Movie, type MovieDetails } from '../../shared/types'
 import { runtimeLabel } from '../lib/format'
 import { blurbOf, findOwned, ownedIndex } from '../lib/movie'
+import { rememberOrigin } from '../lib/transition'
 import { useDiscover } from '../lib/useDiscover'
 import { Poster } from './Poster'
 import { IconClose, IconFilm, IconInfo, IconPlay, IconRefresh, IconSparkle } from './icons'
@@ -37,6 +38,7 @@ export function TonightPicker({ movies, onClose, onOpen, onTrailer }: Props): JS
   const [current, setCurrent] = useState<MovieDetails | null>(null)
   const timers = useRef<number[]>([])
   const shown = useRef(new Set<string>())
+  const posterRef = useRef<HTMLDivElement>(null)
 
   const popular = useDiscover('popular', genre)
   const rated = useDiscover('rated', genre)
@@ -213,7 +215,7 @@ export function TonightPicker({ movies, onClose, onOpen, onTrailer }: Props): JS
             </div>
 
             <div className={`tonight-stage ${phase}`}>
-              <div className="tonight-poster">
+              <div className="tonight-poster" ref={posterRef}>
                 {current ? (
                   <Poster url={current.posterUrl} title={current.title} />
                 ) : (
@@ -258,7 +260,10 @@ export function TonightPicker({ movies, onClose, onOpen, onTrailer }: Props): JS
                       Ver tráiler
                     </button>
                   )}
-                  <button className={`btn${current.trailerKey ? '' : ' btn-light'}`} onClick={() => onOpen(current)}>
+                  <button className={`btn${current.trailerKey ? '' : ' btn-light'}`} onClick={() => {
+                      rememberOrigin(posterRef.current)
+                      onOpen(current)
+                    }}>
                     <IconInfo />
                     Ver ficha
                   </button>
