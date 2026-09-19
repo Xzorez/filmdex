@@ -22,8 +22,8 @@ export function Card({ title, year, posterUrl, owned, score, index, onOpen }: Ca
       className="card"
       onClick={onOpen}
       title={title}
-      // El escalonado se corta pronto: con una coleccion larga, si no, las
-      // ultimas fichas tardarian segundos en aparecer.
+      // El escalonado se corta pronto: con una colección larga, si no, las
+      // últimas fichas tardarian segundos en aparecer.
       style={{ '--i': Math.min(index ?? 0, STAGGER_LIMIT) } as CSSProperties}
     >
       <div className="card-art">
@@ -36,7 +36,7 @@ export function Card({ title, year, posterUrl, owned, score, index, onOpen }: Ca
         <div className="card-info">
           <div className="card-name">{title}</div>
           <div className="card-sub">
-            {year ?? 'Sin ano'}
+            {year ?? 'Sin año'}
             {typeof score === 'number' && <span className="score">{score.toFixed(1)}</span>}
           </div>
         </div>

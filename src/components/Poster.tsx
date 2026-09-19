@@ -7,8 +7,8 @@ interface Props {
 }
 
 /**
- * Caratula con respaldo: si TMDB no responde o no hay red, en vez de un hueco
- * vacio se muestra el titulo de la pelicula.
+ * Carátula con respaldo: si TMDB no responde o no hay red, en vez de un hueco
+ * vacio se muestra el título de la película.
  */
 export function Poster({ url, title, className }: Props): JSX.Element {
   const [broken, setBroken] = useState(false)

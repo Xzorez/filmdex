@@ -137,7 +137,7 @@ export function App(): JSX.Element {
     setBusyId(details.sourceId)
     try {
       // Si la ficha aun no esta completa se rellena antes de guardarla, para
-      // que la coleccion no se quede con huecos.
+      // que la colección no se quede con huecos.
       const full =
         details.cast.length === 0 && details.runtime === null
           ? await window.filmdex.sources.details(details.source, details.sourceId).catch(() => details)
@@ -145,7 +145,7 @@ export function App(): JSX.Element {
 
       const saved = await window.filmdex.library.add(toNewMovie(full, status))
       setMovies((current) => [saved, ...current])
-      notify(`"${saved.title}" ${status === 'owned' ? 'anadida a tu coleccion' : 'guardada en tu lista'}`)
+      notify(`"${saved.title}" ${status === 'owned' ? 'añadida a tu colección' : 'guardada en tu lista'}`)
     } catch (error) {
       fail((error as Error).message)
     } finally {
@@ -182,7 +182,7 @@ export function App(): JSX.Element {
 
   const exportLibrary = async (): Promise<void> => {
     try {
-      if (await window.filmdex.library.export()) notify('Coleccion exportada')
+      if (await window.filmdex.library.export()) notify('Colección exportada')
     } catch (error) {
       fail((error as Error).message)
     }
@@ -193,7 +193,7 @@ export function App(): JSX.Element {
       const summary = await window.filmdex.library.import()
       if (!summary) return
       setMovies(await window.filmdex.library.list())
-      notify(`${summary.added} anadidas, ${summary.skipped} repetidas`)
+      notify(`${summary.added} añadidas, ${summary.skipped} repetidas`)
     } catch (error) {
       fail((error as Error).message)
     }
@@ -203,7 +203,7 @@ export function App(): JSX.Element {
     return (
       <div className="loading-row" style={{ height: '100vh' }}>
         <span className="spinner" />
-        Abriendo tu coleccion...
+        Abriendo tu colección...
       </div>
     )
   }
@@ -228,8 +228,8 @@ export function App(): JSX.Element {
           <IconDownload />
           <span>
             {update.status === 'ready'
-              ? `Filmdex ${update.version} esta listo para instalarse.`
-              : `Hay una version nueva de Filmdex (${update.version}).`}
+              ? `Filmdex ${update.version} está listo para instalarse.`
+              : `Hay una versión nueva de Filmdex (${update.version}).`}
           </span>
           <span className="spacer" />
           <button

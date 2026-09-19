@@ -12,14 +12,14 @@ interface Props {
   onDiscover: () => void
 }
 
-/** Topes de duracion, en minutos. `null` es "me da igual". */
+/** Topes de duración, en minutos. `null` es "me da igual". */
 const DURATIONS: { label: string; max: number | null }[] = [
   { label: 'Me da igual', max: null },
   { label: 'Menos de 1 h 45', max: 105 },
   { label: 'Menos de 2 h 15', max: 135 }
 ]
 
-/** Pausas de la ruleta: arranca rapida y frena como una de verdad. */
+/** Pausas de la ruleta: arranca rápida y frena como una de verdad. */
 const ROLL_STEPS = [45, 45, 50, 55, 60, 70, 80, 95, 110, 130, 155, 185, 220, 270]
 
 type Phase = 'idle' | 'rolling' | 'done'
@@ -34,8 +34,8 @@ export function TonightPicker({ movies, onClose, onOpen, onDiscover }: Props): J
 
   const unwatched = useMemo(() => movies.filter((movie) => !movie.watched), [movies])
 
-  // Si hay tope de duracion, las que no la tienen se quedan fuera: no se
-  // puede prometer que una pelicula dure menos de dos horas sin saberlo.
+  // Si hay tope de duración, las que no la tienen se quedan fuera: no se
+  // puede prometer que una película dure menos de dos horas sin saberlo.
   const pool = useMemo(
     () =>
       unwatched.filter((movie) => {
@@ -46,7 +46,7 @@ export function TonightPicker({ movies, onClose, onOpen, onDiscover }: Props): J
     [unwatched, maxMinutes, genre]
   )
 
-  // Solo se ofrecen los generos que de verdad hay entre las pendientes.
+  // Solo se ofrecen los géneros que de verdad hay entre las pendientes.
   const genres = useMemo(() => {
     const present = new Set(unwatched.flatMap((movie) => movie.genres.map(canonicalGenre)))
     return GENRES.filter((item) => present.has(item.id))
@@ -138,21 +138,21 @@ export function TonightPicker({ movies, onClose, onOpen, onDiscover }: Props): J
         </button>
 
         <header className="tonight-head">
-          <h2>Que veo esta noche?</h2>
+          <h2>¿Qué veo esta noche?</h2>
           <p>
             {unwatched.length === 0
-              ? 'No te queda ninguna pelicula sin ver.'
-              : `Entre ${pool.length} de tus ${unwatched.length} peliculas sin ver`}
+              ? 'No te queda ninguna película sin ver.'
+              : `Entre ${pool.length} de tus ${unwatched.length} películas sin ver`}
           </p>
         </header>
 
         {unwatched.length === 0 ? (
           <div className="empty" style={{ margin: '40px auto' }}>
             <IconFilm className="empty-icon" />
-            <h3>Estas al dia</h3>
-            <p>Guarda en tu coleccion o en tu lista peliculas que aun no hayas visto y aqui te elegire una.</p>
+            <h3>Estás al día</h3>
+            <p>Guarda en tu colección o en tu lista películas que aún no hayas visto y aquí te elegiré una.</p>
             <button className="btn btn-light" onClick={onDiscover}>
-              Descubrir peliculas
+              Descubrir películas
             </button>
           </div>
         ) : (
@@ -174,7 +174,7 @@ export function TonightPicker({ movies, onClose, onOpen, onDiscover }: Props): J
                 value={genre ?? ''}
                 onChange={(event) => setGenre(event.target.value || null)}
               >
-                <option value="">Cualquier genero</option>
+                <option value="">Cualquier género</option>
                 {genres.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.label}
@@ -208,7 +208,7 @@ export function TonightPicker({ movies, onClose, onOpen, onDiscover }: Props): J
                   <p className="tonight-hint">Nada encaja con esos filtros. Prueba a quitar alguno.</p>
                 ) : (
                   <p className="tonight-hint">
-                    Filtra si quieres y deja que el azar decida. Tambien puedes pulsar Espacio.
+                    Filtra si quieres y deja que el azar decida. También puedes pulsar Espacio.
                   </p>
                 )}
               </div>
@@ -229,7 +229,7 @@ export function TonightPicker({ movies, onClose, onOpen, onDiscover }: Props): J
               ) : (
                 <button className="btn btn-brand" onClick={roll} disabled={phase === 'rolling' || pool.length === 0}>
                   <IconSparkle />
-                  Elegir por mi
+                  Elegir por mí
                 </button>
               )}
             </div>

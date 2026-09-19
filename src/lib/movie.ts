@@ -3,9 +3,9 @@ import type { Movie, MovieDetails, NewMovie, SearchResult, Status } from '../../
 type Identifiable = { imdbId: string | null; tmdbId: number | null }
 
 /**
- * Todas las formas de nombrar una misma pelicula. Hacen falta las dos: el
- * catalogo de TMDB no trae codigo de IMDb y el de Cinemeta no siempre trae el
- * de TMDB, asi que una pelicula guardada desde una fuente solo se reconoce en
+ * Todas las formas de nombrar una misma película. Hacen falta las dos: el
+ * catálogo de TMDB no trae código de IMDb y el de Cinemeta no siempre trae el
+ * de TMDB, así que una película guardada desde una fuente solo se reconoce en
  * la otra si se comparan todos sus identificadores.
  */
 export function identitiesOf(movie: Identifiable): string[] {
@@ -15,7 +15,7 @@ export function identitiesOf(movie: Identifiable): string[] {
   return ids
 }
 
-/** Indice de lo que ya esta en la coleccion, para marcarlo mientras exploras. */
+/** Indice de lo que ya esta en la colección, para marcarlo mientras exploras. */
 export function ownedIndex(movies: Movie[]): Map<string, Movie> {
   const index = new Map<string, Movie>()
   for (const movie of movies) {
@@ -24,7 +24,7 @@ export function ownedIndex(movies: Movie[]): Map<string, Movie> {
   return index
 }
 
-/** Busca una pelicula del catalogo en la coleccion por cualquiera de sus codigos. */
+/** Busca una película del catálogo en la colección por cualquiera de sus códigos. */
 export function findOwned(index: Map<string, Movie>, candidate: Identifiable): Movie | null {
   for (const id of identitiesOf(candidate)) {
     const found = index.get(id)
@@ -34,14 +34,14 @@ export function findOwned(index: Map<string, Movie>, candidate: Identifiable): M
 }
 
 /**
- * Una pelicula guardada tiene los mismos datos que una ficha del catalogo, solo
- * que ademas lleva los del coleccionista. Esta conversion permite que la ficha
+ * Una película guardada tiene los mismos datos que una ficha del catálogo, solo
+ * que además lleva los del coleccionista. Esta conversion permite que la ficha
  * sea la misma vengas de donde vengas.
  */
 export function toDetails(movie: Movie): MovieDetails {
   return {
     source: movie.source,
-    // Cada fuente pide sus fichas con su propio codigo: TMDB no entiende los de IMDb.
+    // Cada fuente pide sus fichas con su propio código: TMDB no entiende los de IMDb.
     sourceId: movie.source === 'tmdb' ? String(movie.tmdbId ?? '') : (movie.imdbId ?? ''),
     imdbId: movie.imdbId,
     tmdbId: movie.tmdbId,
@@ -61,14 +61,14 @@ export function toDetails(movie: Movie): MovieDetails {
 }
 
 /**
- * Un resultado de busqueda trae menos datos que una ficha. Se completa con
+ * Un resultado de búsqueda trae menos datos que una ficha. Se completa con
  * huecos para poder abrirlo al momento mientras llega el resto.
  */
 export function fromSearchResult(result: SearchResult): MovieDetails {
   return { ...result, backdropUrl: null, runtime: null, genres: [], director: null, cast: [], trailerKey: null }
 }
 
-/** Convierte una ficha en una pelicula lista para guardar en la coleccion. */
+/** Convierte una ficha en una película lista para guardar en la colección. */
 export function toNewMovie(details: MovieDetails, status: Status): NewMovie {
   return {
     source: details.source,

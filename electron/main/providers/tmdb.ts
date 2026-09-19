@@ -46,7 +46,7 @@ function authFor(key: string): { headers: Record<string, string>; query: string 
 
 async function request<T>(settings: Settings, endpoint: string, params: Record<string, string>): Promise<T> {
   if (!settings.tmdbApiKey.trim()) {
-    throw new SourceError('Falta la clave de TMDB. Anadela en Ajustes o cambia a la fuente sin cuenta.')
+    throw new SourceError('Falta la clave de TMDB. Añádela en Ajustes o cambia a la fuente sin cuenta.')
   }
   const auth = authFor(settings.tmdbApiKey)
   const search = new URLSearchParams({ language: settings.language, ...params })
@@ -56,12 +56,12 @@ async function request<T>(settings: Settings, endpoint: string, params: Record<s
   try {
     response = await fetch(url, { headers: { accept: 'application/json', ...auth.headers } })
   } catch {
-    throw new SourceError('No hay conexion con TMDB. Revisa tu red.')
+    throw new SourceError('No hay conexión con TMDB. Revisa tu red.')
   }
 
-  if (response.status === 401) throw new SourceError('La clave de TMDB no es valida.')
+  if (response.status === 401) throw new SourceError('La clave de TMDB no es válida.')
   if (response.status === 429) throw new SourceError('Demasiadas peticiones a TMDB. Prueba en unos segundos.')
-  if (!response.ok) throw new SourceError(`TMDB respondio ${response.status}.`)
+  if (!response.ok) throw new SourceError(`TMDB respondió ${response.status}.`)
 
   return (await response.json()) as T
 }
@@ -77,7 +77,7 @@ function toSearchResult(raw: TmdbMovie): SearchResult {
     sourceId: String(raw.id),
     imdbId: raw.imdb_id ?? null,
     tmdbId: raw.id,
-    title: raw.title ?? raw.original_title ?? 'Sin titulo',
+    title: raw.title ?? raw.original_title ?? 'Sin título',
     originalTitle: raw.original_title ?? raw.title ?? '',
     year: yearOf(raw.release_date),
     overview: raw.overview ?? '',
@@ -100,7 +100,7 @@ export async function details(settings: Settings, sourceId: string): Promise<Mov
   const raw = await request<TmdbMovie>(settings, `/movie/${sourceId}`, {
     append_to_response: 'credits,videos',
     // Sin esto TMDB solo devuelve videos en el idioma pedido, y muchas
-    // peliculas no tienen trailer doblado.
+    // películas no tienen trailer doblado.
     include_video_language: `${language},en,null`
   })
   const director = raw.credits?.crew?.find((member) => member.job === 'Director')?.name ?? null
@@ -141,8 +141,8 @@ export async function verifyKey(apiKey: string, language: string): Promise<boole
 }
 
 /**
- * TMDB filtra por identificador numerico de genero, no por nombre. Son fijos y
- * estan documentados, asi que se mapean desde los nombres comunes de GENRES.
+ * TMDB filtra por identificador numerico de género, no por nombre. Son fijos y
+ * están documentados, así que se mapean desde los nombres comunes de GENRES.
  * Los que TMDB no tiene se quedan fuera y la lista sale sin filtrar.
  */
 const TMDB_GENRE_IDS: Record<string, number> = {
@@ -178,7 +178,7 @@ export async function discover(settings: Settings, query: DiscoverQuery): Promis
 
   const data = await request<{ results?: TmdbMovie[] }>(settings, '/discover/movie', params)
 
-  // discover no trae duracion ni reparto: se completan al abrir la ficha.
+  // discover no trae duración ni reparto: se completan al abrir la ficha.
   return (data.results ?? []).slice(0, 24).map((raw) => ({
     ...toSearchResult(raw),
     backdropUrl: raw.backdrop_path ? `${IMAGES}/w780${raw.backdrop_path}` : null,
@@ -216,7 +216,7 @@ function toProviders(list: TmdbProvider[] | undefined): WatchProvider[] {
 }
 
 /**
- * Plataformas donde esta la pelicula en la region del usuario. TMDB saca estos
+ * Plataformas donde esta la película en la region del usuario. TMDB saca estos
  * datos de JustWatch. Devuelve null si alli no esta en ninguna.
  */
 export async function watchProviders(settings: Settings, tmdbId: number): Promise<WatchOptions | null> {

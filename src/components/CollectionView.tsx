@@ -10,9 +10,9 @@ type SortKey = 'added' | 'title' | 'year' | 'rating'
 type Mode = 'rows' | 'grid'
 
 const SORTS: { id: SortKey; label: string }[] = [
-  { id: 'added', label: 'Anadidas' },
-  { id: 'title', label: 'Titulo' },
-  { id: 'year', label: 'Ano' },
+  { id: 'added', label: 'Añadidas' },
+  { id: 'title', label: 'Título' },
+  { id: 'year', label: 'Año' },
   { id: 'rating', label: 'Mi nota' }
 ]
 
@@ -74,15 +74,15 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
       <div className="page">
         <div className="empty">
           <IconFilm className="empty-icon" />
-          <h3>{status === 'owned' ? 'Tu estanteria esta vacia' : 'Tu lista esta vacia'}</h3>
+          <h3>{status === 'owned' ? 'Tu estantería está vacía' : 'Tu lista está vacía'}</h3>
           <p>
             {status === 'owned'
-              ? 'Explora el inicio o busca un titulo arriba, y guarda las peliculas que tengas en casa con su formato.'
-              : 'Aqui se guarda lo que quieres ver o comprar mas adelante. Anade desde la ficha de cualquier pelicula.'}
+              ? 'Explora el inicio o busca un título arriba, y guarda las películas que tengas en casa.'
+              : 'Aquí se guarda lo que quieres ver o comprar más adelante. Añade desde la ficha de cualquier película.'}
           </p>
           <button className="btn btn-light" onClick={onDiscover}>
             <IconPlus />
-            Descubrir peliculas
+            Descubrir películas
           </button>
         </div>
       </div>
@@ -104,9 +104,9 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">{status === 'owned' ? 'Mi coleccion' : 'Mi lista'}</h1>
+          <h1 className="page-title">{status === 'owned' ? 'Mi colección' : 'Mi lista'}</h1>
           <p className="page-sub">
-            {scoped.length} {scoped.length === 1 ? 'pelicula' : 'peliculas'}
+            {scoped.length} {scoped.length === 1 ? 'película' : 'películas'}
             {status === 'owned' && ` · ${scoped.filter((movie) => movie.watched).length} vistas`}
           </p>
         </div>
@@ -117,12 +117,12 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
               <input
                 className="input"
                 style={{ width: 210 }}
-                placeholder="Filtrar por titulo, director..."
+                placeholder="Filtrar por título, director..."
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
               <select className="select" value={genre} onChange={(event) => setGenre(event.target.value)}>
-                <option value="todos">Todos los generos</option>
+                <option value="todos">Todos los géneros</option>
                 {GENRES.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.label}
@@ -153,7 +153,7 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
           <div className="empty">
             <IconFilm className="empty-icon" />
             <h3>Sin resultados</h3>
-            <p>Ninguna pelicula encaja con ese filtro.</p>
+            <p>Ninguna película encaja con ese filtro.</p>
           </div>
         ) : (
           <div className="grid">{filtered.map((movie, position) => toCard(movie, position))}</div>
@@ -166,7 +166,7 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
           <Row index={1} title="Tus mejores notas" count={best.length}>
             {best.map(toCard)}
           </Row>
-          <Row index={2} title="Anadidas hace poco" count={recent.length}>
+          <Row index={2} title="Añadidas hace poco" count={recent.length}>
             {recent.map(toCard)}
           </Row>
           {byGenre.map((group, position) => (

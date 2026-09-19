@@ -60,7 +60,7 @@ export function SearchView({ query, movies, needsTmdbKey, onOpen, onGoSettings }
           <IconSettings className="empty-icon" />
           <h3>Falta la clave de TMDB</h3>
           <p>
-            Tienes elegida la fuente TMDB, que necesita una clave gratuita. Anadela en Ajustes o vuelve a la fuente
+            Tienes elegida la fuente TMDB, que necesita una clave gratuita. Añádela en Ajustes o vuelve a la fuente
             que no pide cuenta.
           </p>
           <button className="btn btn-light" onClick={onGoSettings}>
@@ -77,7 +77,7 @@ export function SearchView({ query, movies, needsTmdbKey, onOpen, onGoSettings }
         <div>
           <h1 className="page-title">{query.trim() ? `Resultados para "${query.trim()}"` : 'Buscar'}</h1>
           <p className="page-sub">
-            {loading ? 'Buscando...' : searched ? `${results.length} peliculas encontradas` : 'Escribe al menos dos letras'}
+            {loading ? 'Buscando...' : searched ? `${results.length} películas encontradas` : 'Escribe al menos dos letras'}
           </p>
         </div>
       </div>
@@ -85,7 +85,7 @@ export function SearchView({ query, movies, needsTmdbKey, onOpen, onGoSettings }
       {loading && (
         <div className="loading-row">
           <span className="spinner" />
-          Buscando peliculas...
+          Buscando películas...
         </div>
       )}
 
@@ -101,7 +101,7 @@ export function SearchView({ query, movies, needsTmdbKey, onOpen, onGoSettings }
         <div className="empty">
           <IconSearch className="empty-icon" />
           <h3>Ninguna coincidencia</h3>
-          <p>Prueba con el titulo original, o quita el ano de la busqueda.</p>
+          <p>Prueba con el título original, o quita el año de la búsqueda.</p>
         </div>
       )}
 

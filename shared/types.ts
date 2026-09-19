@@ -1,13 +1,13 @@
 export type Status = 'owned' | 'wishlist'
 
 /**
- * De donde salen las fichas.
+ * De dónde salen las fichas.
  * - `libre`: Cinemeta + Wikidata + Wikipedia. No pide cuenta ni clave.
  * - `tmdb`:  The Movie Database. Mejor calidad, pero exige una clave gratuita.
  */
 export type Source = 'libre' | 'tmdb'
 
-/** Una pelicula tal y como vive en la coleccion del usuario. */
+/** Una película tal y como vive en la colección del usuario. */
 export interface Movie {
   /** Identificador interno estable, independiente de la fuente. */
   id: string
@@ -18,7 +18,7 @@ export interface Movie {
   originalTitle: string
   year: number | null
   overview: string
-  /** URL completa de la caratula; cada fuente usa su propio servidor. */
+  /** URL completa de la carátula; cada fuente usa su propio servidor. */
   posterUrl: string | null
   backdropUrl: string | null
   runtime: number | null
@@ -27,7 +27,7 @@ export interface Movie {
   cast: string[]
   voteAverage: number | null
   /**
-   * Codigo del trailer en YouTube. Opcional porque las peliculas guardadas
+   * Código del trailer en YouTube. Opcional porque las películas guardadas
    * antes de que existiera no lo tienen; se rellena al abrir su ficha.
    */
   trailerKey?: string | null
@@ -58,10 +58,10 @@ export interface Settings {
   autoUpdate: boolean
 }
 
-/** Resultado resumido de una busqueda, ya normalizado venga de donde venga. */
+/** Resultado resumido de una búsqueda, ya normalizado venga de donde venga. */
 export interface SearchResult {
   source: Source
-  /** Identificador dentro de su fuente: numero de TMDB o codigo de IMDb. */
+  /** Identificador dentro de su fuente: número de TMDB o código de IMDb. */
   sourceId: string
   imdbId: string | null
   tmdbId: number | null
@@ -80,7 +80,7 @@ export interface MovieDetails extends SearchResult {
   genres: string[]
   director: string | null
   cast: string[]
-  /** Codigo del trailer en YouTube, si la fuente lo conoce. */
+  /** Código del trailer en YouTube, si la fuente lo conoce. */
   trailerKey: string | null
 }
 
@@ -89,9 +89,9 @@ export interface WatchProvider {
   logoUrl: string | null
 }
 
-/** Donde se puede ver una pelicula en la region del usuario. */
+/** Donde se puede ver una película en la region del usuario. */
 export interface WatchOptions {
-  /** Pagina de TMDB con los enlaces directos a cada plataforma. */
+  /** Página de TMDB con los enlaces directos a cada plataforma. */
   link: string | null
   /** Incluida en una suscripcion, o gratis con o sin anuncios. */
   stream: WatchProvider[]
@@ -99,33 +99,33 @@ export interface WatchOptions {
   buy: WatchProvider[]
 }
 
-/** Generos comunes a las dos fuentes, con su nombre en espanol para la interfaz. */
+/** Géneros comunes a las dos fuentes, con su nombre en español para la interfaz. */
 export const GENRES: { id: string; label: string }[] = [
-  { id: 'Action', label: 'Accion' },
+  { id: 'Action', label: 'Acción' },
   { id: 'Adventure', label: 'Aventura' },
-  { id: 'Animation', label: 'Animacion' },
+  { id: 'Animation', label: 'Animación' },
   { id: 'Comedy', label: 'Comedia' },
   { id: 'Crime', label: 'Crimen' },
   { id: 'Documentary', label: 'Documental' },
   { id: 'Drama', label: 'Drama' },
   { id: 'Family', label: 'Familiar' },
-  { id: 'Fantasy', label: 'Fantasia' },
+  { id: 'Fantasy', label: 'Fantasía' },
   { id: 'History', label: 'Historia' },
   { id: 'Horror', label: 'Terror' },
   { id: 'Mystery', label: 'Misterio' },
   { id: 'Romance', label: 'Romance' },
-  { id: 'Sci-Fi', label: 'Ciencia ficcion' },
+  { id: 'Sci-Fi', label: 'Ciencia ficción' },
   { id: 'Thriller', label: 'Thriller' },
-  { id: 'War', label: 'Belica' },
+  { id: 'War', label: 'Bélica' },
   { id: 'Western', label: 'Western' }
 ]
 
-/** Que lista pedir al descubrir: las que mas suenan o las mejor puntuadas. */
+/** Que lista pedir al descubrir: las que más suenan o las mejor puntuadas. */
 export type Catalog = 'popular' | 'rated'
 
 export interface DiscoverQuery {
   catalog: Catalog
-  /** Identificador de genero de GENRES, o null para no filtrar. */
+  /** Identificador de género de GENRES, o null para no filtrar. */
   genre: string | null
 }
 

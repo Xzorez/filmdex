@@ -7,7 +7,7 @@ import type { Library, Movie, NewMovie, Settings } from '../../shared/types'
 const LIBRARY_VERSION = 1
 
 const DEFAULT_SETTINGS: Settings = {
-  // Por defecto, la fuente que no pide cuenta: la app funciona nada mas abrirla.
+  // Por defecto, la fuente que no pide cuenta: la app funciona nada más abrirla.
   source: 'libre',
   tmdbApiKey: '',
   language: 'es-ES',
@@ -48,10 +48,37 @@ async function readJson<T>(file: string, fallback: T): Promise<T> {
 
 let cache: Library | null = null
 
+/**
+ * Hasta la v0.4.0 los generos traducidos se guardaban sin tildes. Se corrigen al
+ * cargar para que una pelicula antigua no muestre "Accion" junto a una nueva
+ * con "Acción".
+ */
+const LEGACY_GENRES: Record<string, string> = {
+  Accion: 'Acción',
+  Animacion: 'Animación',
+  Biografia: 'Biografía',
+  Belica: 'Bélica',
+  Fantasia: 'Fantasía',
+  Musica: 'Música',
+  'Ciencia ficcion': 'Ciencia ficción'
+}
+
+function fixLegacyGenres(movies: Movie[]): { movies: Movie[]; changed: boolean } {
+  let changed = false
+  const fixed = movies.map((movie) => {
+    if (!movie.genres.some((genre) => genre in LEGACY_GENRES)) return movie
+    changed = true
+    return { ...movie, genres: movie.genres.map((genre) => LEGACY_GENRES[genre] ?? genre) }
+  })
+  return { movies: fixed, changed }
+}
+
 async function load(): Promise<Library> {
   if (cache) return cache
   const data = await readJson<Library>(libraryPath(), { version: LIBRARY_VERSION, movies: [] })
-  cache = { version: LIBRARY_VERSION, movies: Array.isArray(data.movies) ? data.movies : [] }
+  const { movies, changed } = fixLegacyGenres(Array.isArray(data.movies) ? data.movies : [])
+  cache = { version: LIBRARY_VERSION, movies }
+  if (changed) await persist(cache)
   return cache
 }
 
@@ -90,7 +117,7 @@ export async function removeMovie(id: string): Promise<boolean> {
   return true
 }
 
-/** Anade peliculas de golpe saltando las que ya estan. */
+/** Añade películas de golpe saltando las que ya están. */
 export async function addMany(items: NewMovie[]): Promise<{ added: number; skipped: number }> {
   const library = await load()
   const seen = new Set(library.movies.map((m) => String(m.imdbId ?? m.tmdbId)))

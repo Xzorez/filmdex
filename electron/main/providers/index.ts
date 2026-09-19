@@ -7,7 +7,7 @@ export const verifyTmdbKey = tmdb.verifyKey
 
 /**
  * Donde verla sale siempre de TMDB, uses la fuente que uses: la fuente sin
- * cuenta tambien trae el codigo de TMDB de cada pelicula, asi que basta con
+ * cuenta también trae el código de TMDB de cada película, así que basta con
  * tener la clave guardada.
  */
 export const watchProviders = tmdb.watchProviders
@@ -26,7 +26,7 @@ export async function search(settings: Settings, query: string): Promise<SearchR
 }
 
 /**
- * La ficha se pide a la misma fuente que dio el resultado de busqueda, no a la
+ * La ficha se pide a la misma fuente que dio el resultado de búsqueda, no a la
  * configurada: si el usuario cambia de fuente a mitad, lo que tiene delante
  * sigue funcionando.
  */
@@ -34,7 +34,7 @@ export async function details(settings: Settings, source: Source, sourceId: stri
   return pick(source).details(settings, sourceId)
 }
 
-/** Listas para descubrir, opcionalmente acotadas a un genero. */
+/** Listas para descubrir, opcionalmente acotadas a un género. */
 export async function discover(settings: Settings, query: DiscoverQuery): Promise<MovieDetails[]> {
   return pick(settings.source).discover(settings, query)
 }

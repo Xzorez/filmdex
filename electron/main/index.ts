@@ -20,7 +20,7 @@ function createWindow(): void {
     show: false,
     backgroundColor: '#141414',
     title: 'Filmdex',
-    // Sin marco de Windows: la barra de titulo y sus botones los dibuja la
+    // Sin marco de Windows: la barra de título y sus botones los dibuja la
     // propia interfaz, para que no rompan el conjunto.
     frame: false,
     autoHideMenuBar: true,
@@ -35,7 +35,7 @@ function createWindow(): void {
   mainWindow.once('ready-to-show', () => mainWindow?.show())
 
   // La interfaz necesita saber si esta maximizada para cambiar el icono del
-  // boton y los redondeos.
+  // botón y los redondeos.
   const sendMaximized = (): void => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('window:maximized', mainWindow.isMaximized())
@@ -47,7 +47,7 @@ function createWindow(): void {
   mainWindow.on('leave-full-screen', sendMaximized)
 
   // Con el reproductor de YouTube enfocado, las teclas se quedan dentro de el
-  // y la interfaz no se entera. Aqui se ven todas, asi que Escape se reenvia
+  // y la interfaz no se entera. Aquí se ven todas, así que Escape se reenvia
   // para poder cerrar el trailer. Si el video esta a pantalla completa, Escape
   // es para salir de ella y no se toca.
   let htmlFullScreen = false
@@ -97,7 +97,7 @@ function registerHandlers(): void {
     const movies = await store.listMovies()
     const stamp = new Date().toISOString().slice(0, 10)
     const result = await dialog.showSaveDialog({
-      title: 'Exportar coleccion',
+      title: 'Exportar colección',
       defaultPath: `filmdex-${stamp}.json`,
       filters: [{ name: 'JSON', extensions: ['json'] }]
     })
@@ -108,13 +108,13 @@ function registerHandlers(): void {
 
   handle('library:import', async () => {
     const result = await dialog.showOpenDialog({
-      title: 'Importar coleccion',
+      title: 'Importar colección',
       properties: ['openFile'],
       filters: [{ name: 'JSON', extensions: ['json'] }]
     })
     if (result.canceled || result.filePaths.length === 0) return null
     const raw = JSON.parse(await fs.readFile(result.filePaths[0], 'utf8')) as { movies?: Movie[] }
-    if (!Array.isArray(raw.movies)) throw new Error('El fichero no tiene una coleccion valida.')
+    if (!Array.isArray(raw.movies)) throw new Error('El fichero no tiene una colección válida.')
     const incoming: NewMovie[] = raw.movies.map((movie) => {
       const { id, addedAt, ...rest } = movie
       void id
@@ -176,12 +176,12 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(async () => {
     // En produccion el renderer solo ejecuta y conecta lo suyo; las imagenes
-    // pueden venir de cualquier https porque cada fuente sirve sus caratulas
+    // pueden venir de cualquier https porque cada fuente sirve sus carátulas
     // desde un dominio distinto. En desarrollo se omite porque Vite necesita
     // inyectar sus propios scripts para el recargado en caliente.
     if (!isDev) {
       session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-        // Solo la pagina de la app: si se aplicara tambien al reproductor de
+        // Solo la página de la app: si se aplicara también al reproductor de
         // YouTube incrustado, le prohibiria cargar sus propios scripts.
         if (details.resourceType !== 'mainFrame') {
           callback({ responseHeaders: details.responseHeaders })
@@ -201,8 +201,8 @@ if (!app.requestSingleInstanceLock()) {
     }
 
     // YouTube rechaza con "Error 153" los videos incrustados que llegan sin
-    // cabecera de origen, y una pagina cargada desde fichero no la manda. Se
-    // anade aqui para que los trailers funcionen en la app instalada.
+    // cabecera de origen, y una página cargada desde fichero no la manda. Se
+    // añade aquí para que los trailers funcionen en la app instalada.
     session.defaultSession.webRequest.onBeforeSendHeaders(
       { urls: ['https://www.youtube-nocookie.com/*', 'https://www.youtube.com/*'] },
       (details, callback) => {
@@ -231,8 +231,8 @@ if (!app.requestSingleInstanceLock()) {
     if (process.platform !== 'darwin') app.quit()
   })
 
-  // La cache de titulos se guarda en diferido: al salir puede quedar algo sin
-  // volcar, asi que se fuerza aqui.
+  // La cache de títulos se guarda en diferido: al salir puede quedar algo sin
+  // volcar, así que se fuerza aquí.
   app.on('before-quit', () => {
     void titleCache.flush()
   })

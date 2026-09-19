@@ -1,7 +1,7 @@
 import { useEffect, useState, type JSX } from 'react'
 import type { WatchOptions, WatchProvider } from '../../shared/types'
 
-/** Lo ya consultado durante la sesion: reabrir una ficha no repite la peticion. */
+/** Lo ya consultado durante la sesión: reabrir una ficha no repite la peticion. */
 const cache = new Map<number, WatchOptions | null>()
 
 interface Props {
@@ -43,15 +43,15 @@ export function WatchPanel({ tmdbId, hasTmdbKey, onGoSettings }: Props): JSX.Ele
     }
   }, [tmdbId, hasTmdbKey])
 
-  // Sin codigo de TMDB no hay a quien preguntar: mejor no mostrar nada.
+  // Sin código de TMDB no hay a quien preguntar: mejor no mostrar nada.
   if (tmdbId === null) return null
 
   if (!hasTmdbKey) {
     return (
       <section className="watch">
-        <h4>Donde verla</h4>
+        <h4>Dónde verla</h4>
         <p className="watch-note">
-          Para saber en que plataformas esta, anade tu clave de TMDB.{' '}
+          Para saber en qué plataformas está, añade tu clave de TMDB.{' '}
           <a onClick={onGoSettings}>Ir a Ajustes</a>
         </p>
       </section>
@@ -67,7 +67,7 @@ export function WatchPanel({ tmdbId, hasTmdbKey, onGoSettings }: Props): JSX.Ele
 
   return (
     <section className="watch">
-      <h4>Donde verla</h4>
+      <h4>Dónde verla</h4>
 
       {state.kind === 'loading' && (
         <div className="watch-row">
@@ -78,7 +78,7 @@ export function WatchPanel({ tmdbId, hasTmdbKey, onGoSettings }: Props): JSX.Ele
       )}
 
       {state.kind === 'ready' && !options && (
-        <p className="watch-note">No esta en ninguna plataforma en tu pais ahora mismo.</p>
+        <p className="watch-note">No está en ninguna plataforma en tu país ahora mismo.</p>
       )}
 
       {options && (
@@ -87,7 +87,7 @@ export function WatchPanel({ tmdbId, hasTmdbKey, onGoSettings }: Props): JSX.Ele
           <Group label="Alquiler" providers={options.rent} onOpen={open} />
           <Group label="Compra" providers={options.buy} onOpen={open} />
           {/* TMDB exige citar a JustWatch, que es de donde salen estos datos. */}
-          <p className="watch-credit">Disponibilidad segun JustWatch</p>
+          <p className="watch-credit">Disponibilidad según JustWatch</p>
         </>
       )}
     </section>

@@ -19,13 +19,13 @@ const SOURCES: { id: Source; title: string; detail: string }[] = [
     id: 'libre',
     title: 'Sin cuenta',
     detail:
-      'Funciona nada mas instalar. Caratulas y fichas del catalogo de IMDb, con el titulo y la sinopsis traducidos desde Wikipedia. Los generos salen en ingles.'
+      'Funciona nada más instalar. Carátulas y fichas del catálogo de IMDb, con el título y la sinopsis traducidos desde Wikipedia.'
   },
   {
     id: 'tmdb',
     title: 'TMDB',
     detail:
-      'Mejor calidad: titulos de estreno, sinopsis comerciales y fichas mas completas. Necesita una clave gratuita que se pide en dos minutos.'
+      'Mejor calidad: títulos de estreno, sinopsis comerciales y fichas más completas. Necesita una clave gratuita que se pide en dos minutos.'
   }
 ]
 
@@ -59,7 +59,7 @@ export function SettingsView({
       setVerdict(valid ? 'ok' : 'bad')
       if (valid) {
         await onSave({ tmdbApiKey: apiKey, source: 'tmdb' })
-        onNotify('Clave guardada. Las fichas vendran ya de TMDB.')
+        onNotify('Clave guardada. Las fichas vendrán ya de TMDB.')
       }
     } catch (error) {
       setVerdict('bad')
@@ -71,7 +71,7 @@ export function SettingsView({
 
   const pickSource = async (source: Source): Promise<void> => {
     if (source === 'tmdb' && !settings.tmdbApiKey.trim()) {
-      onNotify('Primero anade una clave de TMDB aqui debajo.', 'bad')
+      onNotify('Primero añade una clave de TMDB aquí debajo.', 'bad')
       return
     }
     await onSave({ source })
@@ -82,28 +82,28 @@ export function SettingsView({
       case 'checking':
         return 'Buscando actualizaciones...'
       case 'available':
-        return `Hay una version nueva: ${update.version}`
+        return `Hay una versión nueva: ${update.version}`
       case 'downloading':
         return `Descargando... ${update.percent ?? 0}%`
       case 'ready':
-        return `La version ${update.version} esta lista para instalarse`
+        return `La versión ${update.version} está lista para instalarse`
       case 'none':
         return update.message === 'Modo desarrollo'
           ? 'En modo desarrollo no se comprueban actualizaciones'
-          : 'Tienes la ultima version'
+          : 'Tienes la última versión'
       case 'error':
         return `No se pudo comprobar: ${update.message ?? 'error desconocido'}`
       default:
-        return 'Sin comprobar todavia'
+        return 'Sin comprobar todavía'
     }
   })()
 
   return (
     <>
       <div className="panel">
-        <h3>De donde salen las fichas</h3>
+        <h3>De dónde salen las fichas</h3>
         <p className="hint">
-          Las peliculas que ya tienes guardadas no cambian al cambiar de fuente: esto solo afecta a las que anadas a
+          Las películas que ya tienes guardadas no cambian al cambiar de fuente: esto solo afecta a las que añadas a
           partir de ahora.
         </p>
 
@@ -131,7 +131,7 @@ export function SettingsView({
 
         <h3 style={{ fontSize: 13.5 }}>Clave de TMDB</h3>
         <p className="hint">
-          Solo hace falta si eliges TMDB. Crea una cuenta gratuita, entra en Ajustes - API y copia aqui la clave (vale
+          Solo hace falta si eliges TMDB. Crea una cuenta gratuita, entra en Ajustes - API y copia aquí la clave (vale
           la v3 o el token de lectura v4). Se guarda solo en tu equipo.{' '}
           <a onClick={() => void window.filmdex.app.openExternal('https://www.themoviedb.org/settings/api')}>
             Abrir TMDB
@@ -141,7 +141,7 @@ export function SettingsView({
           <input
             className="input"
             type="password"
-            placeholder="Pega aqui tu clave"
+            placeholder="Pega aquí tu clave"
             value={apiKey}
             onChange={(event) => {
               setApiKey(event.target.value)
@@ -159,16 +159,16 @@ export function SettingsView({
             La clave funciona.
           </div>
         )}
-        {verdict === 'bad' && <div className="status-line bad">La clave no es valida. Revisala en TMDB.</div>}
+        {verdict === 'bad' && <div className="status-line bad">La clave no es válida. Revísala en TMDB.</div>}
       </div>
 
       <div className="panel">
-        <h3>Tu coleccion</h3>
+        <h3>Tu colección</h3>
         <p className="hint">Todo se guarda solo en este ordenador. Exporta de vez en cuando para tener copia.</p>
         <div className="stat-grid" style={{ marginBottom: 18 }}>
           <div className="stat">
             <div className="n">{owned.length}</div>
-            <div className="l">peliculas</div>
+            <div className="l">películas</div>
           </div>
           <div className="stat">
             <div className="n">{watched.length}</div>
@@ -201,24 +201,24 @@ export function SettingsView({
       <div className="panel">
         <h3>Actualizaciones</h3>
         <p className="hint">
-          Filmdex se actualiza solo desde las publicaciones de GitHub. Cuando se publica una version nueva, la app la
+          Filmdex se actualiza solo desde las publicaciones de GitHub. Cuando se publica una versión nueva, la app la
           descarga y la instala al reiniciar.
         </p>
 
         <div className="switch-row">
           <div className="switch-text">
             <strong>Buscar actualizaciones al arrancar</strong>
-            <span>Comprueba GitHub unos segundos despues de abrir la app</span>
+            <span>Comprueba GitHub unos segundos después de abrir la app</span>
           </div>
           <button
             className={`switch${settings.autoUpdate ? ' on' : ''}`}
             onClick={() => void onSave({ autoUpdate: !settings.autoUpdate })}
-            aria-label="Alternar busqueda automatica"
+            aria-label="Alternar búsqueda automática"
           />
         </div>
 
         <div className="status-line neutral" style={{ marginTop: 14 }}>
-          Version instalada: {version} · {updateLine}
+          Versión instalada: {version} · {updateLine}
         </div>
 
         <div className="chip-row" style={{ marginTop: 14 }}>
@@ -233,7 +233,7 @@ export function SettingsView({
           {update.status === 'available' && (
             <button className="btn btn-primary" onClick={() => void window.filmdex.updater.download()}>
               <IconDownload />
-              Descargar version {update.version}
+              Descargar versión {update.version}
             </button>
           )}
           {update.status === 'ready' && (
@@ -246,17 +246,17 @@ export function SettingsView({
 
       <div className="panel">
         <h3>Idioma de las fichas</h3>
-        <p className="hint">Idioma en el que se buscan los titulos y las sinopsis.</p>
+        <p className="hint">Idioma en el que se buscan los títulos y las sinopsis.</p>
         <select
           className="select"
           style={{ maxWidth: 240 }}
           value={settings.language}
           onChange={(event) => void onSave({ language: event.target.value })}
         >
-          <option value="es-ES">Espanol</option>
+          <option value="es-ES">Español</option>
           <option value="en-US">English</option>
-          <option value="fr-FR">Francais</option>
-          <option value="pt-BR">Portugues</option>
+          <option value="fr-FR">Français</option>
+          <option value="pt-BR">Português</option>
           <option value="it-IT">Italiano</option>
         </select>
       </div>

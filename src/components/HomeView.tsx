@@ -22,7 +22,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
   const owned = useMemo(() => ownedIndex(movies), [movies])
   const favourites = useMemo(() => favouriteGenres(movies), [movies])
 
-  // Con menos de tres peliculas no hay gusto que deducir todavia.
+  // Con menos de tres películas no hay gusto que deducir todavía.
   const hasTaste = movies.length >= 3 && favourites.length > 0
   const topGenre = hasTaste ? favourites[0] : null
   const secondGenre = hasTaste && favourites.length > 1 ? favourites[1] : null
@@ -66,7 +66,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
       <div className="page">
         <div className="empty">
           <IconFilm className="empty-icon" />
-          <h3>No se pudo cargar el catalogo</h3>
+          <h3>No se pudo cargar el catálogo</h3>
           <p>{error}</p>
           <button className="btn btn-light" onClick={() => onGenre(genre)}>
             Reintentar
@@ -111,7 +111,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
           <Row
             index={0}
             title="Recomendadas para ti"
-            note={`Porque en tu coleccion abunda ${labelOf(topGenre).toLowerCase()}`}
+            note={`Porque en tu colección abunda ${labelOf(topGenre).toLowerCase()}`}
             loading={forYou.loading}
             count={unseen(forYou.movies).length}
           >
@@ -121,7 +121,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
 
         <Row
           index={1}
-          title={genre ? `${labelOf(genre)}: lo mas visto` : 'Populares ahora'}
+          title={genre ? `${labelOf(genre)}: lo más visto` : 'Populares ahora'}
           loading={popular.loading}
           count={withoutFeature(popular.movies).length}
         >
@@ -140,7 +140,7 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
         {genre === null && secondGenre && (
           <Row
             index={3}
-            title={`Mas ${labelOf(secondGenre).toLowerCase()} para ti`}
+            title={`Más ${labelOf(secondGenre).toLowerCase()} para ti`}
             loading={second.loading}
             count={unseen(second.movies).length}
           >

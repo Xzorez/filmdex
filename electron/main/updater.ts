@@ -3,7 +3,7 @@ import pkg from 'electron-updater'
 import type { UpdateState } from '../../shared/types'
 
 // electron-updater es CommonJS: el named import directo no es fiable en todos
-// los empaquetados, asi que lo sacamos del objeto por defecto.
+// los empaquetados, así que lo sacamos del objeto por defecto.
 const { autoUpdater } = pkg
 
 let target: BrowserWindow | null = null

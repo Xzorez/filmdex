@@ -29,18 +29,18 @@ const sample: Movie[] = [
     originalTitle: 'Interstellar',
     year: 2014,
     overview:
-      'Un grupo de exploradores emprende la mayor mision de la historia: viajar mas alla de nuestra galaxia para descubrir si la humanidad tiene futuro entre las estrellas.',
+      'Un grupo de exploradores emprende la mayor misión de la historia: viajar más allá de nuestra galaxia para descubrir si la humanidad tiene futuro entre las estrellas.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
     backdropUrl: null,
     runtime: 169,
-    genres: ['Aventura', 'Drama', 'Ciencia ficcion'],
+    genres: ['Aventura', 'Drama', 'Ciencia ficción'],
     director: 'Christopher Nolan',
     cast: ['Matthew McConaughey', 'Anne Hathaway', 'Jessica Chastain'],
     voteAverage: 8.4,
     status: 'owned',
     watched: true,
     rating: 9,
-    notes: 'Edicion steelbook comprada en 2023.',
+    notes: 'Edición steelbook comprada en 2023.',
     tags: [],
     addedAt: '2026-02-11T10:00:00.000Z',
     watchedAt: '2026-03-02T21:30:00.000Z'
@@ -77,11 +77,11 @@ const sample: Movie[] = [
     title: 'Origen',
     originalTitle: 'Inception',
     year: 2010,
-    overview: 'Dom Cobb es un ladron con una extrana habilidad para entrar a los suenos de la gente y robarles sus secretos.',
+    overview: 'Dom Cobb es un ladrón con una extraña habilidad para entrar a los sueños de la gente y robarles sus secretos.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg',
     backdropUrl: null,
     runtime: 148,
-    genres: ['Accion', 'Ciencia ficcion'],
+    genres: ['Acción', 'Ciencia ficción'],
     director: 'Christopher Nolan',
     cast: ['Leonardo DiCaprio', 'Joseph Gordon-Levitt'],
     voteAverage: 8.4,
@@ -98,10 +98,10 @@ const sample: Movie[] = [
     tmdbId: 496243,
     imdbId: 'tt6751668',
     source: 'tmdb' as Source,
-    title: 'Parasitos',
+    title: 'Parásitos',
     originalTitle: '기생충',
     year: 2019,
-    overview: 'Toda la familia de Ki-taek esta en el paro y se interesa por el tren de vida de la riquisima familia Park.',
+    overview: 'Toda la familia de Ki-taek esta en el paro y se interesa por el tren de vida de la riquísima familia Park.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg',
     backdropUrl: null,
     runtime: 133,
@@ -125,11 +125,11 @@ const sample: Movie[] = [
     title: 'El viaje de Chihiro',
     originalTitle: '千と千尋の神隠し',
     year: 2001,
-    overview: 'Chihiro es una nina de diez anos que viaja en coche con sus padres hacia su nueva casa.',
+    overview: 'Chihiro es una niña de diez años que viaja en coche con sus padres hacia su nueva casa.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg',
     backdropUrl: null,
     runtime: 125,
-    genres: ['Animacion', 'Fantasia'],
+    genres: ['Animación', 'Fantasía'],
     director: 'Hayao Miyazaki',
     cast: ['Rumi Hiiragi', 'Miyu Irino'],
     voteAverage: 8.5,
@@ -149,7 +149,7 @@ const sample: Movie[] = [
     title: 'Pulp Fiction',
     originalTitle: 'Pulp Fiction',
     year: 1994,
-    overview: 'Jules y Vincent son dos matones a sueldo que trabajan para el gangster Marsellus Wallace.',
+    overview: 'Jules y Vincent son dos matones a sueldo que trabajan para el gánster Marsellus Wallace.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg',
     backdropUrl: null,
     runtime: 154,
@@ -168,7 +168,7 @@ const sample: Movie[] = [
 ]
 
 
-/** Catalogo de mentira para ver las filas de descubrir sin salir a la red. */
+/** Catálogo de mentira para ver las filas de descubrir sin salir a la red. */
 const catalog: MovieDetails[] = [
   {
     source: 'tmdb',
@@ -179,7 +179,7 @@ const catalog: MovieDetails[] = [
     originalTitle: 'Oppenheimer',
     year: 2023,
     overview:
-      'La historia del fisico J. Robert Oppenheimer y su papel en el desarrollo de la bomba atomica.',
+      'La historia del físico J. Robert Oppenheimer y su papel en el desarrollo de la bomba atómica.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/ptpr0kGAckfQkJeJIt8st5dglvd.jpg',
     backdropUrl: null,
     voteAverage: 8.1,
@@ -198,7 +198,7 @@ const catalog: MovieDetails[] = [
     originalTitle: 'Barbie',
     year: 2023,
     overview:
-      'Barbie vive en Barbieland siendo una muneca perfecta, hasta que empieza a hacerse preguntas.',
+      'Barbie vive en Barbieland siendo una muñeca perfecta, hasta que empieza a hacerse preguntas.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/yRRuLt7sMBEQkHsd1S3KaaofZn7.jpg',
     backdropUrl: null,
     voteAverage: 7.1,
@@ -222,7 +222,7 @@ const catalog: MovieDetails[] = [
     backdropUrl: null,
     voteAverage: 7.8,
     runtime: 139,
-    genres: ['Ciencia ficcion', 'Aventura'],
+    genres: ['Ciencia ficción', 'Aventura'],
     director: 'Daniel Kwan',
     cast: ['Michelle Yeoh', 'Ke Huy Quan'],
     trailerKey: 'om5Un9X720M'
@@ -236,12 +236,12 @@ const catalog: MovieDetails[] = [
     originalTitle: 'Dune',
     year: 2021,
     overview:
-      'Paul Atreides viaja al planeta mas peligroso del universo para asegurar el futuro de su familia.',
+      'Paul Atreides viaja al planeta más peligroso del universo para asegurar el futuro de su familia.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/d5NXSklXo0qyIYkgV94XAgMIckC.jpg',
     backdropUrl: null,
     voteAverage: 7.8,
     runtime: 155,
-    genres: ['Ciencia ficcion', 'Aventura'],
+    genres: ['Ciencia ficción', 'Aventura'],
     director: 'Denis Villeneuve',
     cast: ['Timothee Chalamet', 'Rebecca Ferguson'],
     trailerKey: 'om5Un9X720M'
@@ -255,12 +255,12 @@ const catalog: MovieDetails[] = [
     originalTitle: '1917',
     year: 2019,
     overview:
-      'Dos soldados britanicos cruzan el frente para entregar un mensaje que salvara mil vidas.',
+      'Dos soldados británicos cruzan el frente para entregar un mensaje que salvara mil vidas.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/iZf0KyrE25z1sage4SYFLCCrMi9.jpg',
     backdropUrl: null,
     voteAverage: 7.9,
     runtime: 119,
-    genres: ['Belica', 'Drama'],
+    genres: ['Bélica', 'Drama'],
     director: 'Sam Mendes',
     cast: ['George MacKay', 'Dean-Charles Chapman'],
     trailerKey: 'om5Un9X720M'
@@ -274,7 +274,7 @@ const catalog: MovieDetails[] = [
     originalTitle: 'Joker',
     year: 2019,
     overview:
-      'Arthur Fleck, un comico fracasado, encuentra en la violencia el camino hacia una nueva identidad.',
+      'Arthur Fleck, un cómico fracasado, encuentra en la violencia el camino hacia una nueva identidad.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg',
     backdropUrl: null,
     voteAverage: 8.1,
@@ -289,7 +289,7 @@ const catalog: MovieDetails[] = [
     sourceId: 'tt5052448',
     imdbId: 'tt5052448',
     tmdbId: 419430,
-    title: 'Dejame salir',
+    title: 'Déjame salir',
     originalTitle: 'Get Out',
     year: 2017,
     overview:
@@ -312,12 +312,12 @@ const catalog: MovieDetails[] = [
     originalTitle: 'Whiplash',
     year: 2014,
     overview:
-      'Un joven baterista se somete a la ensenanza brutal de un profesor que no acepta menos que la perfeccion.',
+      'Un joven baterista se somete a la enseñanza brutal de un profesor que no acepta menos que la perfección.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/oPxnRhyAIzJKGUEdSiwTJQBa3NM.jpg',
     backdropUrl: null,
     voteAverage: 8.4,
     runtime: 107,
-    genres: ['Drama', 'Musica'],
+    genres: ['Drama', 'Música'],
     director: 'Damien Chazelle',
     cast: ['Miles Teller', 'J.K. Simmons'],
     trailerKey: 'om5Un9X720M'
@@ -346,11 +346,11 @@ const catalog: MovieDetails[] = [
     sourceId: 'tt0110413',
     imdbId: 'tt0110413',
     tmdbId: 101,
-    title: 'Leon: el profesional',
-    originalTitle: 'Leon',
+    title: 'León: el profesional',
+    originalTitle: 'León',
     year: 1994,
     overview:
-      'Un sicario solitario acoge a una nina de doce anos despues de que asesinen a su familia.',
+      'Un sicario solitario acoge a una niña de doce años después de que asesinen a su familia.',
     posterUrl: 'https://image.tmdb.org/t/p/w342/yI6X2cCM5YPJtxMhUd3dPGqDAhw.jpg',
     backdropUrl: null,
     voteAverage: 8.3,
@@ -426,7 +426,7 @@ window.filmdex = {
       })
     },
     discover: (query: DiscoverQuery) => {
-      // Se filtra con el mismo criterio que la app: los generos guardados estan
+      // Se filtra con el mismo criterio que la app: los géneros guardados están
       // traducidos y hay que devolverlos a su nombre comun.
       const pool = query.genre
         ? catalog.filter((movie) => movie.genres.some((name) => canonicalGenre(name) === query.genre))

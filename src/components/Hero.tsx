@@ -23,7 +23,7 @@ export function Hero({ movie, owned, onOpen, onAdd, onTrailer, busy }: Props): J
       </div>
 
       <div className="hero-body">
-        <div className="hero-kicker">Pelicula destacada</div>
+        <div className="hero-kicker">Película destacada</div>
         <h1 className="hero-title">{movie.title}</h1>
 
         <div className="hero-facts">
@@ -41,23 +41,23 @@ export function Hero({ movie, owned, onOpen, onAdd, onTrailer, busy }: Props): J
           {movie.trailerKey && (
             <button className="btn btn-light" onClick={onTrailer}>
               <IconPlay />
-              Ver trailer
+              Ver tráiler
             </button>
           )}
           {owned ? (
             <button className="btn" onClick={onOpen}>
               <IconCheck />
-              Ya en tu coleccion
+              Ya en tu colección
             </button>
           ) : (
             <button className={`btn${movie.trailerKey ? '' : ' btn-light'}`} onClick={onAdd} disabled={busy}>
               {busy ? <span className="spinner" /> : <IconPlus />}
-              Anadir a mi coleccion
+              Añadir a mi colección
             </button>
           )}
           <button className="btn" onClick={onOpen}>
             <IconInfo />
-            Mas informacion
+            Más información
           </button>
         </div>
       </div>

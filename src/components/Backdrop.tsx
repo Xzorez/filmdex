@@ -7,9 +7,9 @@ interface Props {
 }
 
 /**
- * Fondo apaisado con dos respaldos. No todas las peliculas tienen imagen de
+ * Fondo apaisado con dos respaldos. No todas las películas tienen imagen de
  * fondo, y las que la tienen pueden servirla rota: primero se intenta el fondo,
- * luego la caratula y, si tampoco, queda un degradado con el titulo en vez de
+ * luego la carátula y, si tampoco, queda un degradado con el título en vez de
  * un hueco negro.
  */
 export function Backdrop({ backdropUrl, posterUrl, title }: Props): JSX.Element {

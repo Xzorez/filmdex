@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import type { Catalog, MovieDetails } from '../../shared/types'
 
 /**
- * Las listas ya pedidas se quedan aqui mientras la app este abierta: moverse
- * entre secciones o volver a un genero no repite la peticion.
+ * Las listas ya pedidas se quedan aquí mientras la app este abierta: moverse
+ * entre secciones o volver a un género no repite la peticion.
  */
 const cache = new Map<string, MovieDetails[]>()
 
@@ -16,7 +16,7 @@ export interface RowState {
 /**
  * Pide una lista para descubrir. `enabled` en falso deja la fila en blanco sin
  * llegar a pedir nada, que es lo que hace falta para las filas que dependen de
- * la coleccion cuando todavia esta vacia.
+ * la colección cuando todavía esta vacía.
  */
 export function useDiscover(catalog: Catalog, genre: string | null, enabled = true): RowState {
   const key = `${catalog}|${genre ?? 'todos'}`
@@ -59,7 +59,7 @@ export function useDiscover(catalog: Catalog, genre: string | null, enabled = tr
   return state
 }
 
-/** Se vacia al cambiar de fuente o de idioma: lo guardado ya no vale. */
+/** Se vacía al cambiar de fuente o de idioma: lo guardado ya no vale. */
 export function clearDiscoverCache(): void {
   cache.clear()
 }

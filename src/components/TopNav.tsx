@@ -15,7 +15,7 @@ interface Props {
 
 const LINKS: { id: View; label: string }[] = [
   { id: 'home', label: 'Inicio' },
-  { id: 'collection', label: 'Mi coleccion' },
+  { id: 'collection', label: 'Mi colección' },
   { id: 'wishlist', label: 'Mi lista' }
 ]
 
@@ -54,9 +54,9 @@ export function TopNav({ view, onChange, query, onQuery, scrolled, onSurprise }:
             {link.label}
           </button>
         ))}
-        <button className="nav-link nav-surprise" onClick={onSurprise} title="Que veo esta noche?">
+        <button className="nav-link nav-surprise" onClick={onSurprise} title="¿Qué veo esta noche?">
           <IconSparkle />
-          Sorprendeme
+          Sorpréndeme
         </button>
       </div>
 
@@ -64,14 +64,14 @@ export function TopNav({ view, onChange, query, onQuery, scrolled, onSurprise }:
         <div className={`nav-search${open ? ' open' : ''}`}>
           <button
             onClick={() => (open ? close() : setOpen(true))}
-            aria-label={open ? 'Cerrar busqueda' : 'Buscar'}
+            aria-label={open ? 'Cerrar búsqueda' : 'Buscar'}
           >
             {open ? <IconClose /> : <IconSearch />}
           </button>
           <input
             ref={input}
             value={query}
-            placeholder="Titulos, directores, generos"
+            placeholder="Títulos, directores, géneros"
             onChange={(event) => {
               onQuery(event.target.value)
               if (event.target.value.trim()) onChange('search')

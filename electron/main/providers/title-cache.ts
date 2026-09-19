@@ -1,8 +1,8 @@
 /**
- * Memoria en disco de los titulos ya traducidos.
+ * Memoria en disco de los títulos ya traducidos.
  *
  * El endpoint publico de Wikidata es compartido y su latencia va de un segundo
- * a mas de un minuto sin previo aviso. Como los catalogos repiten peliculas
+ * a más de un minuto sin previo aviso. Como los catálogos repiten películas
  * entre filas y entre sesiones, guardar lo ya resuelto evita casi todas las
  * consultas y hace que la interfaz cargue al momento.
  */
@@ -71,6 +71,6 @@ export async function flush(): Promise<void> {
     await fs.rename(`${target}.tmp`, target)
   } catch {
     // Que no se pueda guardar la cache no es motivo para romper nada: la
-    // proxima vez simplemente se vuelve a preguntar.
+    // próxima vez simplemente se vuelve a preguntar.
   }
 }

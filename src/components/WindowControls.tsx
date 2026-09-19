@@ -2,7 +2,7 @@ import { useEffect, useState, type JSX } from 'react'
 
 /**
  * Minimizar, maximizar y cerrar dibujados por la app. La ventana va sin marco,
- * asi que estos botones sustituyen a los de Windows y siguen el color de la
+ * así que estos botones sustituyen a los de Windows y siguen el color de la
  * interfaz en vez de romperla por arriba.
  */
 export function WindowControls(): JSX.Element {

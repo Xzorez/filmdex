@@ -2,12 +2,12 @@
  * Fuente de fichas que no pide cuenta ni clave, combinando tres servicios
  * publicos:
  *
- *   Cinemeta   caratula, fondo, director, reparto, duracion y nota (en ingles)
- *   Wikidata   traduce el titulo al idioma del usuario, cruzando por codigo IMDb
+ *   Cinemeta   carátula, fondo, director, reparto, duración y nota (en inglés)
+ *   Wikidata   traduce el título al idioma del usuario, cruzando por código IMDb
  *   Wikipedia  sinopsis en ese mismo idioma
  *
- * Los dos ultimos son un extra: si fallan o no conocen la pelicula, se devuelve
- * lo que dio Cinemeta en vez de romper la busqueda.
+ * Los dos últimos son un extra: si fallan o no conocen la película, se devuelve
+ * lo que dio Cinemeta en vez de romper la búsqueda.
  */
 import type { DiscoverQuery, MovieDetails, SearchResult, Settings } from '../../../shared/types'
 import { SourceError } from './errors'
@@ -19,7 +19,7 @@ const WIKIDATA = 'https://query.wikidata.org/sparql'
 const AGENT = 'Filmdex/1.0 (https://github.com/Xzorez/filmdex)'
 
 /**
- * Wikidata y Wikipedia son extras: si tardan mas de esto, se sigue adelante con
+ * Wikidata y Wikipedia son extras: si tardan más de esto, se sigue adelante con
  * los datos que ya hay en vez de dejar la interfaz colgada.
  */
 const EXTRA_TIMEOUT_MS = 6000
@@ -45,32 +45,32 @@ interface CinemetaMeta {
 }
 
 /**
- * Cinemeta da los generos siempre en ingles y son una lista corta y cerrada,
- * asi que se traducen aqui. En otros idiomas se dejan tal cual.
+ * Cinemeta da los géneros siempre en inglés y son una lista corta y cerrada,
+ * así que se traducen aquí. En otros idiomas se dejan tal cual.
  */
 const GENRES_ES: Record<string, string> = {
-  Action: 'Accion',
+  Action: 'Acción',
   Adventure: 'Aventura',
-  Animation: 'Animacion',
-  Biography: 'Biografia',
+  Animation: 'Animación',
+  Biography: 'Biografía',
   Comedy: 'Comedia',
   Crime: 'Crimen',
   Documentary: 'Documental',
   Drama: 'Drama',
   Family: 'Familiar',
-  Fantasy: 'Fantasia',
+  Fantasy: 'Fantasía',
   'Film-Noir': 'Cine negro',
   History: 'Historia',
   Horror: 'Terror',
-  Music: 'Musica',
+  Music: 'Música',
   Musical: 'Musical',
   Mystery: 'Misterio',
   Romance: 'Romance',
-  'Sci-Fi': 'Ciencia ficcion',
+  'Sci-Fi': 'Ciencia ficción',
   Short: 'Cortometraje',
   Sport: 'Deporte',
   Thriller: 'Thriller',
-  War: 'Belica',
+  War: 'Bélica',
   Western: 'Western'
 }
 
@@ -81,11 +81,11 @@ function translateGenres(genres: string[], language: string): string[] {
 
 /**
  * Wikidata arrastra la desambiguacion del articulo en la etiqueta: "Mayday
- * (pelicula)", "Alien (1979 film)". Se quita solo cuando el parentesis habla de
- * cine, para no tocar titulos que lo llevan de verdad como "Rec (3): Genesis".
+ * (película)", "Alien (1979 film)". Se quita solo cuando el parentesis habla de
+ * cine, para no tocar títulos que lo llevan de verdad como "Rec (3): Genesis".
  */
 function cleanTitle(raw: string): string {
-  // El texto puede venir con marcas invisibles o con la tilde descompuesta, asi
+  // El texto puede venir con marcas invisibles o con la tilde descompuesta, así
   // que se compara sobre una copia sin diacriticos y se corta el original.
   const title = raw.normalize('NFC').replace(/[\u200b-\u200f\ufeff]/g, '').trim()
   const plain = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -94,7 +94,7 @@ function cleanTitle(raw: string): string {
   return title.slice(0, match.index).trim() || title
 }
 
-/** "es-ES" -> "es". Wikidata y Wikipedia trabajan con el codigo corto. */
+/** "es-ES" -> "es". Wikidata y Wikipedia trabajan con el código corto. */
 function shortLang(language: string): string {
   return language.split('-')[0]?.toLowerCase() || 'es'
 }
@@ -107,9 +107,9 @@ async function getJson<T>(url: string, what: string, timeoutMs?: number): Promis
       signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined
     })
   } catch {
-    throw new SourceError(`No hay conexion con ${what}. Revisa tu red.`)
+    throw new SourceError(`No hay conexión con ${what}. Revisa tu red.`)
   }
-  if (!response.ok) throw new SourceError(`${what} respondio ${response.status}.`)
+  if (!response.ok) throw new SourceError(`${what} respondió ${response.status}.`)
   return (await response.json()) as T
 }
 
@@ -136,7 +136,7 @@ function toSearchResult(meta: CinemetaMeta): SearchResult {
     sourceId: imdbId ?? '',
     imdbId,
     tmdbId: typeof meta.moviedb_id === 'number' ? meta.moviedb_id : null,
-    title: meta.name ?? 'Sin titulo',
+    title: meta.name ?? 'Sin título',
     originalTitle: meta.name ?? '',
     year: yearOf(meta),
     overview: meta.description ?? '',
@@ -146,8 +146,8 @@ function toSearchResult(meta: CinemetaMeta): SearchResult {
 }
 
 /**
- * Pide a Wikidata el titulo traducido de varias peliculas de una vez, cruzando
- * por su codigo de IMDb. Devuelve tambien el articulo de Wikipedia, que es de
+ * Pide a Wikidata el título traducido de varias películas de una vez, cruzando
+ * por su código de IMDb. Devuelve también el articulo de Wikipedia, que es de
  * donde sale luego la sinopsis.
  */
 async function translateTitles(
@@ -161,7 +161,7 @@ async function translateTitles(
   const pending: string[] = []
   for (const id of imdbIds.filter(Boolean)) {
     const cached = titleCache.get(id, language)
-    // Un titulo vacio es la marca de "aqui no hay traduccion": se respeta para
+    // Un título vacio es la marca de "aquí no hay traducción": se respeta para
     // no volver a preguntar por lo mismo en cada carga.
     if (cached) {
       if (cached.title) found.set(id, { ...cached, title: cleanTitle(cached.title) })
@@ -192,7 +192,7 @@ async function translateTitles(
       const imdb = row.imdb?.value
       const title = row.itemLabel?.value
       if (!imdb || !title) continue
-      // Wikidata devuelve el codigo Q cuando no hay etiqueta en ese idioma.
+      // Wikidata devuelve el código Q cuando no hay etiqueta en ese idioma.
       if (/^Q\d+$/.test(title)) continue
       const entry: TitleEntry = { title: cleanTitle(title), article: row.article?.value ?? null }
       found.set(imdb, entry)
@@ -205,7 +205,7 @@ async function translateTitles(
       if (!found.has(id)) titleCache.put(id, language, { title: '', article: null })
     }
   } catch {
-    // Un fallo de red no se guarda: la proxima vez se vuelve a intentar.
+    // Un fallo de red no se guarda: la próxima vez se vuelve a intentar.
   }
   return found
 }
@@ -241,7 +241,7 @@ async function wikipediaSummary(articleUrl: string, language: string): Promise<s
   }
 }
 
-/** Cuantas peliculas se piden por fila: suficientes para un carrusel largo. */
+/** Cuantas películas se piden por fila: suficientes para un carrusel largo. */
 const ROW_SIZE = 24
 
 /** El trailer principal: se prefiere el marcado como tal a clips y teasers. */
@@ -251,7 +251,7 @@ function trailerOf(meta: CinemetaMeta): string | null {
   return main?.source ?? meta.trailerStreams?.find((item) => item.ytId)?.ytId ?? null
 }
 
-/** Convierte un meta de catalogo, que ya viene completo, en una ficha entera. */
+/** Convierte un meta de catálogo, que ya viene completo, en una ficha entera. */
 function toDetails(meta: CinemetaMeta, language: string): MovieDetails {
   return {
     ...toSearchResult(meta),
@@ -265,15 +265,15 @@ function toDetails(meta: CinemetaMeta, language: string): MovieDetails {
 }
 
 /**
- * Listas para descubrir. Los catalogos de Cinemeta ya traen la ficha entera,
- * asi que una sola peticion basta para pintar una fila completa.
+ * Listas para descubrir. Los catálogos de Cinemeta ya traen la ficha entera,
+ * así que una sola peticion basta para pintar una fila completa.
  */
 export async function discover(settings: Settings, query: DiscoverQuery): Promise<MovieDetails[]> {
   const catalog = query.catalog === 'rated' ? 'imdbRating' : 'top'
   const filter = query.genre ? `/genre=${encodeURIComponent(query.genre)}` : ''
   const data = await getJson<{ metas?: CinemetaMeta[] }>(
     `${CINEMETA}/catalog/movie/${catalog}${filter}.json`,
-    'el catalogo de peliculas'
+    'el catálogo de películas'
   )
 
   const movies = (data.metas ?? [])
@@ -294,7 +294,7 @@ export async function discover(settings: Settings, query: DiscoverQuery): Promis
 
 export async function search(settings: Settings, query: string): Promise<SearchResult[]> {
   const url = `${CINEMETA}/catalog/movie/top/search=${encodeURIComponent(query.trim())}.json`
-  const data = await getJson<{ metas?: CinemetaMeta[] }>(url, 'el catalogo de peliculas')
+  const data = await getJson<{ metas?: CinemetaMeta[] }>(url, 'el catálogo de películas')
 
   const results = (data.metas ?? []).filter((meta) => meta.id ?? meta.imdb_id).map(toSearchResult)
   const translations = await translateTitles(
@@ -311,10 +311,10 @@ export async function search(settings: Settings, query: string): Promise<SearchR
 export async function details(settings: Settings, sourceId: string): Promise<MovieDetails> {
   const data = await getJson<{ meta?: CinemetaMeta }>(
     `${CINEMETA}/meta/movie/${encodeURIComponent(sourceId)}.json`,
-    'el catalogo de peliculas'
+    'el catálogo de películas'
   )
   const meta = data.meta
-  if (!meta) throw new SourceError('No se encontro la ficha de esa pelicula.')
+  if (!meta) throw new SourceError('No se encontró la ficha de esa película.')
 
   const base = toDetails({ ...meta, imdb_id: meta.imdb_id ?? sourceId }, settings.language)
   const translations = await translateTitles([base.imdbId ?? ''], settings.language)

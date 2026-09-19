@@ -8,7 +8,7 @@ import { IconCheck, IconClose, IconEye, IconHeart, IconPlay, IconPlus, IconTrash
 
 interface Props {
   details: MovieDetails
-  /** La copia guardada, si esta pelicula ya esta en la coleccion. */
+  /** La copia guardada, si esta película ya esta en la colección. */
   owned: Movie | null
   loading: boolean
   busy: boolean
@@ -71,7 +71,7 @@ export function MovieSheet({
               {details.trailerKey && (
                 <button className="btn btn-light" onClick={onTrailer}>
                   <IconPlay />
-                  Ver trailer
+                  Ver tráiler
                 </button>
               )}
               {owned ? (
@@ -91,7 +91,7 @@ export function MovieSheet({
                 <>
                   <button className="btn" onClick={() => onAdd('owned')} disabled={busy}>
                     {busy ? <span className="spinner" /> : <IconPlus />}
-                    Anadir a mi coleccion
+                    Añadir a mi colección
                   </button>
                   <button className="btn" onClick={() => onAdd('wishlist')} disabled={busy}>
                     <IconHeart />
@@ -114,7 +114,7 @@ export function MovieSheet({
             </div>
 
             <p className="sheet-overview">
-              {details.overview || 'No hay sinopsis disponible para esta pelicula.'}
+              {details.overview || 'No hay sinopsis disponible para esta película.'}
             </p>
 
             <WatchPanel tmdbId={details.tmdbId} hasTmdbKey={hasTmdbKey} onGoSettings={onGoSettings} />
@@ -129,19 +129,19 @@ export function MovieSheet({
             )}
             {details.director && (
               <div>
-                <dt>Direccion: </dt>
+                <dt>Dirección: </dt>
                 <dd>{details.director}</dd>
               </div>
             )}
             {details.genres.length > 0 && (
               <div>
-                <dt>Generos: </dt>
+                <dt>Géneros: </dt>
                 <dd>{details.genres.join(', ')}</dd>
               </div>
             )}
             {details.originalTitle && details.originalTitle !== details.title && (
               <div>
-                <dt>Titulo original: </dt>
+                <dt>Título original: </dt>
                 <dd>{details.originalTitle}</dd>
               </div>
             )}
@@ -176,7 +176,7 @@ export function MovieSheet({
                   value={owned.status}
                   onChange={(event) => onPatch(owned.id, { status: event.target.value as Status })}
                 >
-                  <option value="owned">En mi coleccion</option>
+                  <option value="owned">En mi colección</option>
                   <option value="wishlist">En mi lista</option>
                 </select>
               </div>
@@ -193,19 +193,19 @@ export function MovieSheet({
                 id="notes"
                 className="textarea"
                 value={notes}
-                placeholder="Edicion especial, donde la compraste, con quien la viste..."
+                placeholder="Edición especial, donde la compraste, con quien la viste..."
                 onChange={(event) => setNotes(event.target.value)}
                 onBlur={() => notes !== owned.notes && onPatch(owned.id, { notes })}
               />
             </div>
 
             <div className="sheet-actions">
-              <span className="tag">Anadida el {dateLabel(owned.addedAt) ?? '-'}</span>
+              <span className="tag">Añadida el {dateLabel(owned.addedAt) ?? '-'}</span>
               {owned.watchedAt && <span className="tag">Vista el {dateLabel(owned.watchedAt)}</span>}
               <div style={{ flex: 1 }} />
               <button className="btn btn-danger btn-sm" onClick={() => onDelete(owned)}>
                 <IconTrash />
-                Quitar de mi coleccion
+                Quitar de mi colección
               </button>
             </div>
           </div>
