@@ -1,4 +1,4 @@
-import type { Format, Movie, MovieDetails, NewMovie, SearchResult, Status } from '../../shared/types'
+import type { Movie, MovieDetails, NewMovie, SearchResult, Status } from '../../shared/types'
 
 type Identifiable = { imdbId: string | null; tmdbId: number | null }
 
@@ -67,7 +67,7 @@ export function fromSearchResult(result: SearchResult): MovieDetails {
 }
 
 /** Convierte una ficha en una pelicula lista para guardar en la coleccion. */
-export function toNewMovie(details: MovieDetails, format: Format, status: Status): NewMovie {
+export function toNewMovie(details: MovieDetails, status: Status): NewMovie {
   return {
     source: details.source,
     imdbId: details.imdbId,
@@ -83,7 +83,6 @@ export function toNewMovie(details: MovieDetails, format: Format, status: Status
     director: details.director,
     cast: details.cast,
     voteAverage: details.voteAverage,
-    format,
     status,
     watched: false,
     rating: null,

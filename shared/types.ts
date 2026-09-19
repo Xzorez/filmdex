@@ -1,6 +1,3 @@
-export const FORMATS = ['Blu-ray', '4K UHD', 'DVD', 'Digital', 'VHS', 'Otro'] as const
-export type Format = (typeof FORMATS)[number]
-
 export type Status = 'owned' | 'wishlist'
 
 /**
@@ -31,7 +28,6 @@ export interface Movie {
   voteAverage: number | null
 
   // Datos propios del coleccionista
-  format: Format
   status: Status
   watched: boolean
   /** Nota personal de 0 a 10, o null si no la has puntuado. */

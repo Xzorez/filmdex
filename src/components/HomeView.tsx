@@ -48,7 +48,6 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, busyId }:
             title={movie.title}
             year={movie.year}
             posterUrl={movie.posterUrl}
-            badge={mine?.format ?? null}
             owned={Boolean(mine)}
             score={movie.voteAverage}
             onOpen={() => onOpen(movie)}

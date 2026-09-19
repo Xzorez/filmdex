@@ -1,5 +1,5 @@
 import { useEffect, useState, type JSX } from 'react'
-import { FORMATS, type Format, type Movie, type MovieDetails, type Status } from '../../shared/types'
+import type { Movie, MovieDetails, Status } from '../../shared/types'
 import { dateLabel, runtimeLabel } from '../lib/format'
 import { Backdrop } from './Backdrop'
 import { Rating } from './Rating'
@@ -153,22 +153,6 @@ export function MovieSheet({
             <h4>Tu ficha</h4>
 
             <div className="field-row">
-              <div className="field">
-                <label htmlFor="fmt">Formato</label>
-                <select
-                  id="fmt"
-                  className="select"
-                  value={owned.format}
-                  onChange={(event) => onPatch(owned.id, { format: event.target.value as Format })}
-                >
-                  {FORMATS.map((format) => (
-                    <option key={format} value={format}>
-                      {format}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="field">
                 <label htmlFor="sts">Estado</label>
                 <select

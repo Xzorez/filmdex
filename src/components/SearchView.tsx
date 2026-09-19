@@ -116,7 +116,6 @@ export function SearchView({ query, movies, needsTmdbKey, onOpen, onGoSettings }
                 title={result.title}
                 year={result.year}
                 posterUrl={result.posterUrl}
-                badge={mine?.format ?? null}
                 owned={Boolean(mine)}
                 score={result.voteAverage}
                 onOpen={() => onOpen(result)}

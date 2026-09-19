@@ -9,8 +9,6 @@ export interface CardProps {
   title: string
   year: number | null
   posterUrl: string | null
-  /** Etiqueta de la esquina: el formato cuando la pelicula ya es tuya. */
-  badge?: string | null
   owned?: boolean
   score?: number | null
   /** Posicion en la rejilla, para que las fichas entren escalonadas. */
@@ -18,7 +16,7 @@ export interface CardProps {
   onOpen: () => void
 }
 
-export function Card({ title, year, posterUrl, badge, owned, score, index, onOpen }: CardProps): JSX.Element {
+export function Card({ title, year, posterUrl, owned, score, index, onOpen }: CardProps): JSX.Element {
   return (
     <button
       className="card"
@@ -30,7 +28,6 @@ export function Card({ title, year, posterUrl, badge, owned, score, index, onOpe
     >
       <div className="card-art">
         <Poster url={posterUrl} title={title} />
-        {badge && <span className="card-badge">{badge}</span>}
         {owned && (
           <span className="card-owned" title="La tienes">
             <IconCheck />

@@ -90,14 +90,14 @@ export async function removeMovie(id: string): Promise<boolean> {
   return true
 }
 
-/** Anade peliculas de golpe saltando las que ya estan (por tmdbId + formato). */
+/** Anade peliculas de golpe saltando las que ya estan. */
 export async function addMany(items: NewMovie[]): Promise<{ added: number; skipped: number }> {
   const library = await load()
-  const seen = new Set(library.movies.map((m) => `${m.imdbId ?? m.tmdbId}|${m.format}`))
+  const seen = new Set(library.movies.map((m) => String(m.imdbId ?? m.tmdbId)))
   const fresh: Movie[] = []
   for (const item of items) {
     const identity = item.imdbId ?? item.tmdbId
-    const key = `${identity}|${item.format}`
+    const key = String(identity)
     if (identity !== null && seen.has(key)) continue
     seen.add(key)
     fresh.push({ ...item, id: randomUUID(), addedAt: new Date().toISOString() })

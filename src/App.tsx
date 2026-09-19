@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type JSX } from 'react'
-import type { Format, Movie, MovieDetails, SearchResult, Settings, Status, UpdateState } from '../shared/types'
+import type { Movie, MovieDetails, SearchResult, Settings, Status, UpdateState } from '../shared/types'
 import { CollectionView } from './components/CollectionView'
 import { HomeView } from './components/HomeView'
 import { MovieSheet } from './components/MovieSheet'
@@ -15,9 +15,6 @@ interface Toast {
   message: string
   kind: 'ok' | 'bad'
 }
-
-/** Formato con el que se guarda al anadir de un tiron, sin abrir la ficha. */
-const QUICK_FORMAT: Format = 'Blu-ray'
 
 export function App(): JSX.Element {
   const [view, setView] = useState<View>('home')
@@ -121,7 +118,7 @@ export function App(): JSX.Element {
           ? await window.filmdex.sources.details(details.source, details.sourceId).catch(() => details)
           : details
 
-      const saved = await window.filmdex.library.add(toNewMovie(full, QUICK_FORMAT, status))
+      const saved = await window.filmdex.library.add(toNewMovie(full, status))
       setMovies((current) => [saved, ...current])
       notify(`"${saved.title}" ${status === 'owned' ? 'anadida a tu coleccion' : 'guardada en tu lista'}`)
     } catch (error) {

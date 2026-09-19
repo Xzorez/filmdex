@@ -1,6 +1,7 @@
 import { useMemo, useState, type JSX } from 'react'
-import { FORMATS, type Movie, type Status } from '../../shared/types'
+import { GENRES, type Movie, type Status } from '../../shared/types'
 import { normalize } from '../lib/format'
+import { canonicalGenre, labelOf } from '../lib/taste'
 import { Card } from './Card'
 import { Row } from './Row'
 import { IconFilm, IconPlus } from './icons'
@@ -25,7 +26,7 @@ interface Props {
 export function CollectionView({ movies, status, onOpen, onDiscover }: Props): JSX.Element {
   const [mode, setMode] = useState<Mode>('rows')
   const [query, setQuery] = useState('')
-  const [format, setFormat] = useState('todos')
+  const [genre, setGenre] = useState('todos')
   const [sort, setSort] = useState<SortKey>('added')
 
   const scoped = useMemo(() => movies.filter((movie) => movie.status === status), [movies, status])
@@ -33,7 +34,7 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
   const filtered = useMemo(() => {
     const needle = normalize(query.trim())
     const list = scoped.filter((movie) => {
-      if (format !== 'todos' && movie.format !== format) return false
+      if (genre !== 'todos' && !movie.genres.some((name) => canonicalGenre(name) === genre)) return false
       if (!needle) return true
       const haystack = normalize(
         [movie.title, movie.originalTitle, movie.director ?? '', movie.genres.join(' '), movie.notes].join(' ')
@@ -53,7 +54,7 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
           return b.addedAt.localeCompare(a.addedAt)
       }
     })
-  }, [scoped, query, format, sort])
+  }, [scoped, query, genre, sort])
 
   const toCard = (movie: Movie, position = 0): JSX.Element => (
     <Card
@@ -62,7 +63,6 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
       title={movie.title}
       year={movie.year}
       posterUrl={movie.posterUrl}
-      badge={movie.format}
       owned={movie.watched}
       score={movie.rating}
       onOpen={() => onOpen(movie)}
@@ -93,10 +93,12 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
   const pending = scoped.filter((movie) => !movie.watched)
   const best = scoped.filter((movie) => (movie.rating ?? 0) >= 8).sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
   const recent = [...scoped].sort((a, b) => b.addedAt.localeCompare(a.addedAt))
-  const byFormat = FORMATS.map((item) => ({
-    format: item,
-    list: scoped.filter((movie) => movie.format === item)
-  })).filter((group) => group.list.length >= 3)
+  const byGenre = GENRES.map((item) => ({
+    genre: item,
+    list: scoped.filter((movie) => movie.genres.some((name) => canonicalGenre(name) === item.id))
+  }))
+    .filter((group) => group.list.length >= 3)
+    .sort((a, b) => b.list.length - a.list.length)
 
   return (
     <div className="page">
@@ -119,11 +121,11 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
-              <select className="select" value={format} onChange={(event) => setFormat(event.target.value)}>
-                <option value="todos">Todo formato</option>
-                {FORMATS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
+              <select className="select" value={genre} onChange={(event) => setGenre(event.target.value)}>
+                <option value="todos">Todos los generos</option>
+                {GENRES.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
                   </option>
                 ))}
               </select>
@@ -167,8 +169,8 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
           <Row index={2} title="Anadidas hace poco" count={recent.length}>
             {recent.map(toCard)}
           </Row>
-          {byFormat.map((group, position) => (
-            <Row key={group.format} index={3 + position} title={`En ${group.format}`} count={group.list.length}>
+          {byGenre.map((group, position) => (
+            <Row key={group.genre.id} index={3 + position} title={labelOf(group.genre.id)} count={group.list.length}>
               {group.list.map(toCard)}
             </Row>
           ))}
