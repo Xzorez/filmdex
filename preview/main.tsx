@@ -405,6 +405,9 @@ window.filmdex = {
           }))
       ),
     details: (_source: Source, sourceId: string) => {
+      // Las del catálogo ya vienen completas: se devuelven tal cual.
+      const fromCatalog = catalog.find((m) => m.sourceId === sourceId)
+      if (fromCatalog) return wait(fromCatalog)
       const found = sample.find((m) => m.imdbId === sourceId) ?? sample[0]
       return wait({
         source: found.source,

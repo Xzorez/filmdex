@@ -336,12 +336,9 @@ export function App(): JSX.Element {
           onClose={() => setTonight(false)}
           onOpen={(movie) => {
             setTonight(false)
-            openFromCollection(movie)
+            openFromCatalog(movie)
           }}
-          onDiscover={() => {
-            setTonight(false)
-            setView('home')
-          }}
+          onTrailer={playTrailer}
         />
       )}
 
