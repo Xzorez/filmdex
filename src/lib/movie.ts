@@ -61,6 +61,20 @@ export function toDetails(movie: Movie): MovieDetails {
 }
 
 /**
+ * Texto para portada y sorteo. Si la sinopsis no está en tu idioma no se
+ * mezcla con el resto: se cuenta en español quién la dirige y quién sale.
+ */
+export function blurbOf(details: MovieDetails): string {
+  if (details.overviewLocalized !== false) return details.overview
+  const cast = details.cast.slice(0, 3)
+  const people = cast.length > 1 ? `${cast.slice(0, -1).join(', ')} y ${cast[cast.length - 1]}` : cast[0]
+  if (details.director && people) return `Dirigida por ${details.director}, con ${people}.`
+  if (details.director) return `Dirigida por ${details.director}.`
+  if (people) return `Con ${people}.`
+  return ''
+}
+
+/**
  * Un resultado de búsqueda trae menos datos que una ficha. Se completa con
  * huecos para poder abrirlo al momento mientras llega el resto.
  */

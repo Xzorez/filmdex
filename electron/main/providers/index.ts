@@ -31,7 +31,15 @@ export async function search(settings: Settings, query: string): Promise<SearchR
  * sigue funcionando.
  */
 export async function details(settings: Settings, source: Source, sourceId: string): Promise<MovieDetails> {
-  return pick(source).details(settings, sourceId)
+  const result = await pick(source).details(settings, sourceId)
+
+  // Si la sinopsis no esta en tu idioma y hay clave de TMDB, se toma de alli,
+  // que la tiene traducida casi siempre. Sin clave, o si falla, se deja como esta.
+  if (result.overviewLocalized === false && result.tmdbId !== null && settings.tmdbApiKey.trim()) {
+    const overview = await tmdb.localizedOverview(settings, result.tmdbId).catch(() => null)
+    if (overview) return { ...result, overview, overviewLocalized: true }
+  }
+  return result
 }
 
 /** Listas para descubrir, opcionalmente acotadas a un género. */

@@ -126,6 +126,15 @@ function trailerOf(raw: TmdbMovie, language: string): string | null {
   return [...videos].sort((a, b) => rank(b) - rank(a))[0]?.key ?? null
 }
 
+/**
+ * Solo la sinopsis, en el idioma del usuario. Sirve para completar fichas de la
+ * fuente sin cuenta cuando Wikipedia no tiene articulo en ese idioma.
+ */
+export async function localizedOverview(settings: Settings, tmdbId: number): Promise<string | null> {
+  const raw = await request<TmdbMovie>(settings, `/movie/${tmdbId}`, {})
+  return raw.overview?.trim() || null
+}
+
 export async function verifyKey(apiKey: string, language: string): Promise<boolean> {
   try {
     await request<unknown>(

@@ -82,6 +82,11 @@ export interface MovieDetails extends SearchResult {
   cast: string[]
   /** Código del trailer en YouTube, si la fuente lo conoce. */
   trailerKey: string | null
+  /**
+   * `false` cuando la sinopsis no esta en el idioma del usuario: la fuente sin
+   * cuenta cae a la de IMDb, en ingles, si Wikipedia no tiene articulo.
+   */
+  overviewLocalized?: boolean
 }
 
 export interface WatchProvider {

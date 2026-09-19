@@ -260,7 +260,9 @@ function toDetails(meta: CinemetaMeta, language: string): MovieDetails {
     genres: translateGenres(meta.genres ?? meta.genre ?? [], language),
     director: meta.director?.[0] ?? null,
     cast: (meta.cast ?? []).slice(0, 8),
-    trailerKey: trailerOf(meta)
+    trailerKey: trailerOf(meta),
+    // La descripcion de Cinemeta viene siempre en ingles.
+    overviewLocalized: shortLang(language) === 'en'
   }
 }
 
@@ -326,6 +328,7 @@ export async function details(settings: Settings, sourceId: string): Promise<Mov
   return {
     ...base,
     title: translated?.title ?? base.title,
-    overview: summary ?? base.overview
+    overview: summary ?? base.overview,
+    overviewLocalized: summary !== null || base.overviewLocalized
   }
 }

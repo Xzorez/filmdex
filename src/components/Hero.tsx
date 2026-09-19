@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 import type { Movie, MovieDetails } from '../../shared/types'
 import { runtimeLabel } from '../lib/format'
+import { blurbOf } from '../lib/movie'
 import { Backdrop } from './Backdrop'
 import { IconCheck, IconInfo, IconPlay, IconPlus } from './icons'
 
@@ -11,9 +12,11 @@ interface Props {
   onAdd: () => void
   onTrailer: () => void
   busy: boolean
+  /** La sinopsis en español aún no ha llegado: se guarda su hueco. */
+  overviewPending?: boolean
 }
 
-export function Hero({ movie, owned, onOpen, onAdd, onTrailer, busy }: Props): JSX.Element {
+export function Hero({ movie, owned, onOpen, onAdd, onTrailer, busy, overviewPending = false }: Props): JSX.Element {
   const runtime = runtimeLabel(movie.runtime)
 
   return (
@@ -35,7 +38,12 @@ export function Hero({ movie, owned, onOpen, onAdd, onTrailer, busy }: Props): J
           ))}
         </div>
 
-        {movie.overview && <p className="hero-overview">{movie.overview}</p>}
+        {overviewPending ? (
+          // Mismo alto que tres lineas de sinopsis, para que los botones no salten.
+          <div className="hero-overview-slot" />
+        ) : (
+          blurbOf(movie) && <p className="hero-overview">{blurbOf(movie)}</p>
+        )}
 
         <div className="hero-actions">
           {movie.trailerKey && (

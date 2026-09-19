@@ -360,6 +360,11 @@ button {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
 }
 
+.hero-overview-slot {
+  height: calc(15px * 1.5 * 3);
+  margin: 0 0 24px;
+}
+
 .hero-actions {
   display: flex;
   gap: 12px;

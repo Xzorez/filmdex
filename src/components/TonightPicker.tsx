@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react'
 import { GENRES, type Movie, type MovieDetails } from '../../shared/types'
 import { runtimeLabel } from '../lib/format'
-import { findOwned, ownedIndex } from '../lib/movie'
+import { blurbOf, findOwned, ownedIndex } from '../lib/movie'
 import { useDiscover } from '../lib/useDiscover'
 import { Poster } from './Poster'
 import { IconClose, IconFilm, IconInfo, IconPlay, IconRefresh, IconSparkle } from './icons'
@@ -233,7 +233,7 @@ export function TonightPicker({ movies, onClose, onOpen, onTrailer }: Props): JS
                       {current.voteAverage !== null && facts.length > 0 && '  ·  '}
                       {facts.join('  ·  ')}
                     </div>
-                    {current.overview && <p>{current.overview}</p>}
+                    {blurbOf(current) && <p>{blurbOf(current)}</p>}
                   </>
                 ) : phase === 'rolling' ? (
                   <span className="tonight-kicker">Barajando...</span>

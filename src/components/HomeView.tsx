@@ -1,4 +1,4 @@
-import { useMemo, type JSX } from 'react'
+import { useEffect, useMemo, useState, type JSX } from 'react'
 import { GENRES, type Movie, type MovieDetails } from '../../shared/types'
 import { findOwned, ownedIndex } from '../lib/movie'
 import { favouriteGenres, labelOf } from '../lib/taste'
@@ -7,6 +7,9 @@ import { Card } from './Card'
 import { Hero } from './Hero'
 import { Row } from './Row'
 import { IconFilm } from './icons'
+
+/** Fichas completas de las destacadas ya pedidas: volver al inicio no las repite. */
+const featureDetails = new Map<string, MovieDetails>()
 
 interface Props {
   movies: Movie[]
@@ -34,6 +37,36 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
 
   // La portada sale de la primera lista que llegue con algo.
   const feature = popular.movies[0] ?? rated.movies[0] ?? null
+
+  // La ficha del catálogo trae la sinopsis en inglés; la completa la tiene en
+  // español. Se pide aparte y la portada espera a tenerla para enseñarla, en
+  // vez de mostrar una y cambiarla por otra delante del usuario.
+  const [full, setFull] = useState<MovieDetails | null>(null)
+  useEffect(() => {
+    if (!feature) return
+    const cached = featureDetails.get(feature.sourceId)
+    if (cached) {
+      setFull(cached)
+      return
+    }
+    setFull(null)
+    let cancelled = false
+    window.filmdex.sources
+      .details(feature.source, feature.sourceId)
+      .then((details) => {
+        featureDetails.set(feature.sourceId, details)
+        if (!cancelled) setFull(details)
+      })
+      // Sin ficha completa se queda la del catálogo: mejor en inglés que nada.
+      .catch(() => {
+        if (!cancelled) setFull(feature)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [feature?.sourceId])
+
+  const featured = feature && full?.sourceId === feature.sourceId ? { ...feature, ...full } : feature
 
   /** La destacada ya ocupa la portada: no se repite en la primera fila. */
   const withoutFeature = (list: MovieDetails[]): MovieDetails[] =>
@@ -78,13 +111,14 @@ export function HomeView({ movies, genre, onGenre, onOpen, onQuickAdd, onTrailer
 
   return (
     <>
-      {feature ? (
+      {feature && featured ? (
         <Hero
-          movie={feature}
-          owned={findOwned(owned, feature)}
-          onOpen={() => onOpen(feature)}
-          onAdd={() => onQuickAdd(feature)}
-          onTrailer={() => onTrailer(feature)}
+          movie={featured}
+          overviewPending={full?.sourceId !== feature.sourceId}
+          owned={findOwned(owned, featured)}
+          onOpen={() => onOpen(featured)}
+          onAdd={() => onQuickAdd(featured)}
+          onTrailer={() => onTrailer(featured)}
           busy={busyId === feature.sourceId}
         />
       ) : (
