@@ -5,6 +5,7 @@ import { HomeView } from './components/HomeView'
 import { MovieSheet } from './components/MovieSheet'
 import { SearchView } from './components/SearchView'
 import { SettingsView } from './components/SettingsView'
+import { StatsView } from './components/StatsView'
 import { TonightPicker } from './components/TonightPicker'
 import { TopNav, type View } from './components/TopNav'
 import { TrailerPlayer } from './components/TrailerPlayer'
@@ -66,6 +67,28 @@ export function App(): JSX.Element {
 
     return window.filmdex.updater.onState(setUpdate)
   }, [fail])
+
+  // Avisos de plataforma: al terminar cada revision se recarga la lista, para
+  // que las tarjetas muestren donde esta cada pelicula, y se cuenta la novedad.
+  useEffect(() => {
+    const stopChecked = window.filmdex.alerts.onChecked((found) => {
+      void window.filmdex.library.list().then(setMovies)
+      for (const item of found.slice(0, 3)) notify(`${item.title} ya está en ${item.added.join(', ')}`)
+    })
+    const stopOpen = window.filmdex.alerts.onOpen((movieId) => {
+      void window.filmdex.library.list().then((list) => {
+        setMovies(list)
+        const movie = list.find((item) => item.id === movieId)
+        if (!movie) return
+        setView('wishlist')
+        setSheet({ details: toDetails(movie), loading: false })
+      })
+    })
+    return () => {
+      stopChecked()
+      stopOpen()
+    }
+  }, [notify])
 
   // La barra se vuelve opaca en cuanto la portada empieza a subir.
   useEffect(() => {
@@ -265,6 +288,7 @@ export function App(): JSX.Element {
             status="owned"
             onOpen={openFromCollection}
             onDiscover={() => setView('home')}
+            onStats={() => setView('stats')}
           />
         )}
 
@@ -274,8 +298,11 @@ export function App(): JSX.Element {
             status="wishlist"
             onOpen={openFromCollection}
             onDiscover={() => setView('home')}
+            onStats={() => setView('stats')}
           />
         )}
+
+        {view === 'stats' && <StatsView movies={movies} onOpen={openFromCollection} />}
 
         {view === 'search' && (
           <SearchView
@@ -323,6 +350,8 @@ export function App(): JSX.Element {
           onDelete={(movie) => void deleteMovie(movie)}
           onTrailer={() => playTrailer(sheet.details)}
           hasTmdbKey={settings.tmdbApiKey.trim().length > 0}
+          library={movies}
+          onOpenMovie={openFromCatalog}
           onGoSettings={() => {
             setSheet(null)
             setView('settings')

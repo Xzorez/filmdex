@@ -1,8 +1,9 @@
-import { useEffect, useState, type JSX } from 'react'
-import type { Movie, MovieDetails, Status } from '../../shared/types'
+import { Fragment, useEffect, useRef, useState, type JSX } from 'react'
+import type { Movie, MovieDetails, PersonQuery, Status } from '../../shared/types'
 import { dateLabel, runtimeLabel } from '../lib/format'
 import { Backdrop } from './Backdrop'
 import { Rating } from './Rating'
+import { SheetMore } from './SheetMore'
 import { WatchPanel } from './WatchPanel'
 import { IconCheck, IconClose, IconEye, IconHeart, IconPlay, IconPlus, IconTrash } from './icons'
 
@@ -19,6 +20,10 @@ interface Props {
   onTrailer: () => void
   hasTmdbKey: boolean
   onGoSettings: () => void
+  /** La coleccion entera, para marcar lo que ya tienes en las filas del pie. */
+  library: Movie[]
+  /** Abrir otra pelicula desde las filas del pie, sin salir de la ficha. */
+  onOpenMovie: (movie: MovieDetails) => void
 }
 
 export function MovieSheet({
@@ -32,9 +37,22 @@ export function MovieSheet({
   onDelete,
   onTrailer,
   hasTmdbKey,
-  onGoSettings
+  onGoSettings,
+  library,
+  onOpenMovie
 }: Props): JSX.Element {
   const [notes, setNotes] = useState(owned?.notes ?? '')
+  const [person, setPerson] = useState<PersonQuery | null>(null)
+  const overlay = useRef<HTMLDivElement>(null)
+
+  // Al saltar a otra pelicula desde el pie, la ficha empieza de nuevo arriba.
+  useEffect(() => {
+    setPerson(null)
+    overlay.current?.scrollTo({ top: 0 })
+  }, [details.sourceId])
+
+  const choose = (name: string, role: PersonQuery['role']): void =>
+    setPerson({ name, role, from: { imdbId: details.imdbId, tmdbId: details.tmdbId } })
 
   useEffect(() => setNotes(owned?.notes ?? ''), [owned?.id, owned?.notes])
 
@@ -55,7 +73,11 @@ export function MovieSheet({
   }
 
   return (
-    <div className="overlay" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div
+      className="overlay"
+      ref={overlay}
+      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
+    >
       <div className="sheet">
         <div className="sheet-art">
           <Backdrop backdropUrl={details.backdropUrl} posterUrl={details.posterUrl} title={details.title} />
@@ -124,13 +146,34 @@ export function MovieSheet({
             {details.cast.length > 0 && (
               <div>
                 <dt>Reparto: </dt>
-                <dd>{details.cast.slice(0, 4).join(', ')}</dd>
+                <dd>
+                  {details.cast.slice(0, 4).map((name, index) => (
+                    <Fragment key={name}>
+                      {index > 0 && ', '}
+                      <button
+                        className={`person-link${person?.name === name ? ' active' : ''}`}
+                        onClick={() => choose(name, 'cast')}
+                        title={`Ver películas con ${name}`}
+                      >
+                        {name}
+                      </button>
+                    </Fragment>
+                  ))}
+                </dd>
               </div>
             )}
             {details.director && (
               <div>
                 <dt>Dirección: </dt>
-                <dd>{details.director}</dd>
+                <dd>
+                  <button
+                    className={`person-link${person?.name === details.director ? ' active' : ''}`}
+                    onClick={() => choose(details.director!, 'director')}
+                    title={`Ver películas dirigidas por ${details.director}`}
+                  >
+                    {details.director}
+                  </button>
+                </dd>
               </div>
             )}
             {details.genres.length > 0 && (
@@ -210,6 +253,14 @@ export function MovieSheet({
             </div>
           </div>
         )}
+
+        <SheetMore
+          details={details}
+          library={library}
+          hasTmdbKey={hasTmdbKey}
+          person={person}
+          onOpen={onOpenMovie}
+        />
       </div>
     </div>
   )

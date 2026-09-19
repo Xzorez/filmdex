@@ -1,6 +1,7 @@
 import type {
   DiscoverQuery,
   MovieDetails,
+  PersonQuery,
   SearchResult,
   Settings,
   WatchOptions,
@@ -21,6 +22,8 @@ interface TmdbMovie {
   poster_path?: string | null
   backdrop_path?: string | null
   vote_average?: number
+  popularity?: number
+  job?: string
   runtime?: number | null
   genres?: { name: string }[]
   credits?: {
@@ -135,10 +138,68 @@ export async function localizedOverview(settings: Settings, tmdbId: number): Pro
   return raw.overview?.trim() || null
 }
 
+/** Ficha de catalogo sin duracion ni reparto: se completan al abrirla. */
+function toCatalogDetails(raw: TmdbMovie): MovieDetails {
+  return {
+    ...toSearchResult(raw),
+    backdropUrl: raw.backdrop_path ? `${IMAGES}/w780${raw.backdrop_path}` : null,
+    runtime: null,
+    genres: [],
+    director: null,
+    cast: [],
+    trailerKey: null
+  }
+}
+
+const same = (a: string, b: string): boolean =>
+  a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
+
+/**
+ * Otras peliculas de alguien del reparto o de la direccion. La persona se busca
+ * entre los creditos de la pelicula desde la que se pulso, no por su nombre en
+ * todo TMDB: asi no hay homonimos.
+ */
+export async function personFilms(settings: Settings, query: PersonQuery): Promise<MovieDetails[]> {
+  if (query.from.tmdbId === null) return []
+  const credits = await request<{
+    cast?: { id: number; name?: string }[]
+    crew?: { id: number; name?: string; job?: string }[]
+  }>(settings, `/movie/${query.from.tmdbId}/credits`, {})
+
+  const person =
+    query.role === 'director'
+      ? credits.crew?.find((item) => item.job === 'Director' && same(item.name ?? '', query.name))
+      : credits.cast?.find((item) => same(item.name ?? '', query.name))
+  if (!person) return []
+
+  const films = await request<{ cast?: TmdbMovie[]; crew?: TmdbMovie[] }>(
+    settings,
+    `/person/${person.id}/movie_credits`,
+    {}
+  )
+  const list = query.role === 'director' ? (films.crew ?? []).filter((item) => item.job === 'Director') : films.cast ?? []
+
+  const seen = new Set<number>([query.from.tmdbId])
+  return list
+    .filter((item) => item.poster_path && !seen.has(item.id) && seen.add(item.id))
+    .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
+    .slice(0, 24)
+    .map(toCatalogDetails)
+}
+
+/** Recomendaciones de TMDB para una pelicula: las "parecidas a esta". */
+export async function similar(settings: Settings, tmdbId: number): Promise<MovieDetails[]> {
+  const data = await request<{ results?: TmdbMovie[] }>(settings, `/movie/${tmdbId}/recommendations`, { page: '1' })
+  return (data.results ?? [])
+    .filter((item) => item.poster_path)
+    .slice(0, 20)
+    .map(toCatalogDetails)
+}
+
 export async function verifyKey(apiKey: string, language: string): Promise<boolean> {
   try {
     await request<unknown>(
-      { source: 'tmdb', tmdbApiKey: apiKey, language, region: 'ES', autoUpdate: true },
+      { source: 'tmdb', tmdbApiKey: apiKey, language, region: 'ES', autoUpdate: true, watchAlerts: false },
       '/configuration',
       {}
     )

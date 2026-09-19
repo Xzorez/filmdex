@@ -12,7 +12,8 @@ const DEFAULT_SETTINGS: Settings = {
   tmdbApiKey: '',
   language: 'es-ES',
   region: 'ES',
-  autoUpdate: true
+  autoUpdate: true,
+  watchAlerts: true
 }
 
 function libraryPath(): string {

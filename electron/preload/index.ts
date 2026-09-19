@@ -5,6 +5,7 @@ import type {
   Movie,
   MovieDetails,
   NewMovie,
+  PersonQuery,
   SearchResult,
   Settings,
   Source,
@@ -34,6 +35,8 @@ const api = {
     search: (query: string) => call<SearchResult[]>('sources:search', query),
     details: (source: Source, sourceId: string) => call<MovieDetails>('sources:details', source, sourceId),
     discover: (query: DiscoverQuery) => call<MovieDetails[]>('sources:discover', query),
+    personFilms: (query: PersonQuery) => call<MovieDetails[]>('sources:personFilms', query),
+    similar: (tmdbId: number) => call<MovieDetails[]>('sources:similar', tmdbId),
     watchProviders: (tmdbId: number) => call<WatchOptions | null>('sources:watchProviders', tmdbId),
     verifyTmdb: (apiKey: string, language: string) => call<boolean>('sources:verifyTmdb', apiKey, language)
   },
@@ -64,6 +67,26 @@ const api = {
       ipcRenderer.on('window:maximized', wrapped)
       return () => {
         ipcRenderer.removeListener('window:maximized', wrapped)
+      }
+    }
+  },
+  alerts: {
+    check: () => call<{ checked: number; changes: number }>('alerts:check'),
+    /** Tras cada revision: las peliculas de la lista que han llegado a alguna plataforma. */
+    onChecked: (listener: (found: { id: string; title: string; added: string[] }[]) => void): (() => void) => {
+      const wrapped = (_event: unknown, found: { id: string; title: string; added: string[] }[]): void =>
+        listener(found)
+      ipcRenderer.on('alerts:checked', wrapped)
+      return () => {
+        ipcRenderer.removeListener('alerts:checked', wrapped)
+      }
+    },
+    /** Se pulso una notificacion: abrir la ficha de esa pelicula. */
+    onOpen: (listener: (movieId: string) => void): (() => void) => {
+      const wrapped = (_event: unknown, movieId: string): void => listener(movieId)
+      ipcRenderer.on('alerts:open', wrapped)
+      return () => {
+        ipcRenderer.removeListener('alerts:open', wrapped)
       }
     }
   },

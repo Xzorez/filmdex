@@ -43,6 +43,20 @@ export function SettingsView({
   const [apiKey, setApiKey] = useState(settings.tmdbApiKey)
   const [checking, setChecking] = useState(false)
   const [verdict, setVerdict] = useState<'ok' | 'bad' | null>(null)
+  const [checkingAlerts, setCheckingAlerts] = useState(false)
+
+  const checkAlerts = async (): Promise<void> => {
+    setCheckingAlerts(true)
+    try {
+      const { checked, changes } = await window.filmdex.alerts.check()
+      const found = changes === 0 ? 'sin novedades' : changes === 1 ? '1 novedad' : `${changes} novedades`
+      onNotify(`Revisadas ${checked} películas de tu lista: ${found}`)
+    } catch (error) {
+      onNotify((error as Error).message, 'bad')
+    } finally {
+      setCheckingAlerts(false)
+    }
+  }
 
   const owned = movies.filter((movie) => movie.status === 'owned')
   const watched = movies.filter((movie) => movie.watched)
@@ -195,6 +209,38 @@ export function SettingsView({
         </div>
         <div className="mono" style={{ marginTop: 12 }}>
           {dataDir}
+        </div>
+      </div>
+
+      <div className="panel">
+        <h3>Avisos de plataforma</h3>
+        <p className="hint">
+          Mientras Filmdex esté abierto, revisa cada seis horas las películas de tu lista y te avisa cuando alguna
+          llega a una plataforma en tu país. La primera revisión solo toma nota de dónde está cada una, sin avisar.
+        </p>
+        {!settings.tmdbApiKey.trim() && (
+          <p className="hint">Necesita la clave de TMDB de más arriba: sin ella no hay a quién preguntar.</p>
+        )}
+        <div className="switch-row">
+          <div className="switch-text">
+            <strong>Avisarme cuando algo de mi lista se pueda ver</strong>
+            <span>Con una notificación de Windows que abre la ficha</span>
+          </div>
+          <button
+            className={`switch${settings.watchAlerts ? ' on' : ''}`}
+            onClick={() => void onSave({ watchAlerts: !settings.watchAlerts })}
+            aria-label="Alternar avisos de plataforma"
+          />
+        </div>
+        <div className="chip-row" style={{ marginTop: 14 }}>
+          <button
+            className="btn"
+            disabled={checkingAlerts || !settings.watchAlerts || !settings.tmdbApiKey.trim()}
+            onClick={() => void checkAlerts()}
+          >
+            {checkingAlerts ? <span className="spinner" /> : <IconRefresh />}
+            Comprobar ahora
+          </button>
         </div>
       </div>
 

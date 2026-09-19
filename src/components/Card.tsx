@@ -11,12 +11,14 @@ export interface CardProps {
   posterUrl: string | null
   owned?: boolean
   score?: number | null
+  /** Etiqueta pequena en la esquina, como la plataforma donde ya se puede ver. */
+  tag?: string | null
   /** Posicion en la rejilla, para que las fichas entren escalonadas. */
   index?: number
   onOpen: () => void
 }
 
-export function Card({ title, year, posterUrl, owned, score, index, onOpen }: CardProps): JSX.Element {
+export function Card({ title, year, posterUrl, owned, score, tag, index, onOpen }: CardProps): JSX.Element {
   return (
     <button
       className="card"
@@ -28,6 +30,7 @@ export function Card({ title, year, posterUrl, owned, score, index, onOpen }: Ca
     >
       <div className="card-art">
         <Poster url={posterUrl} title={title} />
+        {tag && <span className="card-tag">{tag}</span>}
         {owned && (
           <span className="card-owned" title="La tienes">
             <IconCheck />

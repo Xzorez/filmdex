@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type JSX } from 'react'
 import { WindowControls } from './WindowControls'
 import { IconClose, IconSearch, IconSettings, IconSparkle } from './icons'
 
-export type View = 'home' | 'collection' | 'wishlist' | 'search' | 'settings'
+export type View = 'home' | 'collection' | 'wishlist' | 'search' | 'settings' | 'stats'
 
 interface Props {
   view: View

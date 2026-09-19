@@ -21,9 +21,10 @@ interface Props {
   status: Status
   onOpen: (movie: Movie) => void
   onDiscover: () => void
+  onStats: () => void
 }
 
-export function CollectionView({ movies, status, onOpen, onDiscover }: Props): JSX.Element {
+export function CollectionView({ movies, status, onOpen, onDiscover, onStats }: Props): JSX.Element {
   const [mode, setMode] = useState<Mode>('rows')
   const [query, setQuery] = useState('')
   const [genre, setGenre] = useState('todos')
@@ -64,6 +65,7 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
       year={movie.year}
       posterUrl={movie.posterUrl}
       owned={movie.watched}
+      tag={status === 'wishlist' && movie.availability?.stream[0] ? `En ${movie.availability.stream[0]}` : null}
       score={movie.rating}
       onOpen={() => onOpen(movie)}
     />
@@ -142,6 +144,9 @@ export function CollectionView({ movies, status, onOpen, onDiscover }: Props): J
               </select>
             </>
           )}
+          <button className="btn btn-outline btn-sm" onClick={onStats}>
+            Estadísticas
+          </button>
           <button className="btn btn-outline btn-sm" onClick={() => setMode(mode === 'rows' ? 'grid' : 'rows')}>
             {mode === 'rows' ? 'Ver todas' : 'Ver por grupos'}
           </button>

@@ -9,7 +9,7 @@
  * Los dos últimos son un extra: si fallan o no conocen la película, se devuelve
  * lo que dio Cinemeta en vez de romper la búsqueda.
  */
-import type { DiscoverQuery, MovieDetails, SearchResult, Settings } from '../../../shared/types'
+import type { DiscoverQuery, MovieDetails, PersonQuery, SearchResult, Settings } from '../../../shared/types'
 import { SourceError } from './errors'
 import * as titleCache from './title-cache'
 import type { TitleEntry } from './title-cache'
@@ -332,3 +332,88 @@ export async function details(settings: Settings, sourceId: string): Promise<Mov
     overviewLocalized: summary !== null || base.overviewLocalized
   }
 }
+
+/** La filmografia es el dato principal aqui, no un extra: se le da mas margen. */
+const PERSON_TIMEOUT_MS = 12000
+
+/**
+ * Tope por ficha de Cinemeta al montar una filmografia. Casi todas llegan en
+ * una decima, pero alguna tarda segundos y retendria la fila entera: esas se
+ * descartan, y suelen ser las que Cinemeta ni siquiera tiene como pelicula.
+ */
+const PERSON_META_TIMEOUT_MS = 2500
+
+/**
+ * Otras peliculas de alguien del reparto o de la direccion, sacadas de Wikidata.
+ * Se parte del codigo IMDb de la pelicula abierta y se busca a la persona entre
+ * su propio reparto o direccion, asi que no hay confusion con homonimos.
+ * Despues, las caratulas y los datos salen de Cinemeta, como en el resto.
+ */
+export async function personFilms(settings: Settings, query: PersonQuery): Promise<MovieDetails[]> {
+  const imdbId = query.from.imdbId
+  if (!imdbId) return []
+
+  const property = query.role === 'director' ? 'P57' : 'P161'
+  const lang = shortLang(settings.language)
+  const name = query.name.replace(/["\\]/g, '')
+  const sparql = `SELECT ?imdb ?date ?label WHERE {
+    ?from wdt:P345 "${imdbId}"; wdt:${property} ?person.
+    ?person rdfs:label ?name.
+    FILTER(LCASE(STR(?name)) = LCASE("${name}"))
+    ?film wdt:${property} ?person; wdt:P345 ?imdb.
+    FILTER(?film != ?from && STRSTARTS(?imdb, "tt"))
+    OPTIONAL { ?film wdt:P577 ?date }
+    OPTIONAL { ?film rdfs:label ?label. FILTER(LANG(?label) = "${lang}") }
+  } LIMIT 300`
+
+  let rows: { imdb?: { value: string }; date?: { value: string }; label?: { value: string } }[]
+  try {
+    const data = await getJson<{ results?: { bindings?: typeof rows } }>(
+      `${WIKIDATA}?format=json&query=${encodeURIComponent(sparql)}`,
+      'Wikidata',
+      PERSON_TIMEOUT_MS
+    )
+    rows = data.results?.bindings ?? []
+  } catch {
+    throw new SourceError('Wikidata no responde ahora mismo. Prueba en un rato, o añade la clave de TMDB.')
+  }
+
+  // Una fila por fecha y por etiqueta: se deja una por pelicula. Wikidata guarda
+  // varias fechas (estreno en cada pais, reestrenos): vale la primera.
+  const films = new Map<string, { date: string; label: string | null }>()
+  for (const row of rows) {
+    const id = row.imdb?.value
+    if (!id) continue
+    const current = films.get(id)
+    const date = row.date?.value ?? ''
+    films.set(id, {
+      date: current && current.date && (!date || current.date < date) ? current.date : date,
+      label: current?.label ?? row.label?.value ?? null
+    })
+  }
+  const newest = [...films.entries()].sort((a, b) => b[1].date.localeCompare(a[1].date)).slice(0, 24)
+
+  // Wikidata tambien lista series y cortos: los que Cinemeta no conoce como
+  // pelicula se quedan fuera solos.
+  const metas = await Promise.all(
+    newest.map(async ([id, info]) => {
+      try {
+        const data = await getJson<{ meta?: CinemetaMeta }>(`${CINEMETA}/meta/movie/${id}.json`, 'el catálogo', PERSON_META_TIMEOUT_MS)
+        if (!data.meta?.poster) return null
+        const movie = toDetails({ ...data.meta, imdb_id: data.meta.imdb_id ?? id }, settings.language)
+        if (info.label) {
+          const title = cleanTitle(info.label)
+          titleCache.put(id, settings.language, { title, article: null })
+          return { ...movie, title }
+        }
+        return movie
+      } catch {
+        return null
+      }
+    })
+  )
+  return metas
+    .filter((movie): movie is MovieDetails => movie !== null)
+    .sort((a, b) => (b.year ?? 0) - (a.year ?? 0))
+}
+

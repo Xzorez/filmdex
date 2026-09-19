@@ -31,6 +31,11 @@ export interface Movie {
    * antes de que existiera no lo tienen; se rellena al abrir su ficha.
    */
   trailerKey?: string | null
+  /**
+   * Donde se podia ver en streaming la ultima vez que se comprobo. Solo lo
+   * rellenan los avisos de plataforma, y solo para peliculas de la lista.
+   */
+  availability?: { checkedAt: string; stream: string[] }
 
   // Datos propios del coleccionista
   status: Status
@@ -56,6 +61,8 @@ export interface Settings {
   language: string
   region: string
   autoUpdate: boolean
+  /** Avisar cuando una pelicula de la lista llegue a una plataforma. */
+  watchAlerts: boolean
 }
 
 /** Resultado resumido de una búsqueda, ya normalizado venga de donde venga. */
@@ -124,6 +131,14 @@ export const GENRES: { id: string; label: string }[] = [
   { id: 'War', label: 'Bélica' },
   { id: 'Western', label: 'Western' }
 ]
+
+/** Una persona de la ficha: se busca su filmografia partiendo de esa pelicula. */
+export interface PersonQuery {
+  name: string
+  role: 'director' | 'cast'
+  /** La pelicula desde la que se pulso, para identificar a la persona sin homonimos. */
+  from: { imdbId: string | null; tmdbId: number | null }
+}
 
 /** Que lista pedir al descubrir: las que más suenan o las mejor puntuadas. */
 export type Catalog = 'popular' | 'rated'

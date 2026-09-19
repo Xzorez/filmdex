@@ -602,6 +602,21 @@ button {
   background: linear-gradient(160deg, var(--surface-2), var(--surface));
 }
 
+.card-tag {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  max-width: calc(100% - 40px);
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.8);
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .card-owned {
   position: absolute;
   top: 7px;
@@ -1203,6 +1218,360 @@ button {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+/* ---------- Pie de la ficha ---------- */
+
+.person-link {
+  color: #d2d2d2;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+  text-underline-offset: 3px;
+  transition: color 0.15s var(--ease), text-decoration-color 0.15s var(--ease);
+}
+
+.person-link:hover,
+.person-link.active {
+  color: #fff;
+  text-decoration-color: var(--brand);
+}
+
+/* Las filas dentro de la ficha usan su margen y tarjetas algo menores. */
+.sheet-more {
+  --gutter: 40px;
+  border-top: 1px solid var(--border);
+  padding-top: 26px;
+}
+
+.sheet-more .row-title {
+  font-size: 17px;
+}
+
+.sheet-more .card,
+.sheet-more .skeleton-card {
+  width: 132px;
+}
+
+.sheet-more-note {
+  margin: 0;
+  padding: 0 var(--gutter);
+  font-size: 13.5px;
+  color: var(--text-faint);
+}
+
+/* ---------- Estadísticas ---------- */
+
+.stats-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  padding: 0 var(--gutter);
+  margin-bottom: 18px;
+}
+
+.stats-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 20px;
+  animation: enter-up 0.45s var(--ease) both;
+}
+
+.stats-tile-label {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* Cifra grande en la misma letra que todo; cifras proporcionales, no tabulares. */
+.stats-tile-value {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-top: 4px;
+  line-height: 1.1;
+}
+
+.stats-tile-hint {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  margin-top: 6px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 0 var(--gutter);
+}
+
+.stats-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 22px 16px;
+  min-width: 0;
+  animation: enter-up 0.5s var(--ease) both;
+}
+
+.stats-card.wide {
+  grid-column: 1 / -1;
+}
+
+.stats-card h2 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.stats-card-sub {
+  margin: -10px 0 16px;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* Gráficas: la marca es lo único con color; el texto va en su tinta. */
+.chart {
+  position: relative;
+}
+
+.hbar {
+  display: grid;
+  gap: 6px;
+}
+
+.hbar-row {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 3px 0;
+  border-radius: 4px;
+  outline: none;
+  cursor: default;
+}
+
+.hbar-row:hover .hbar-fill,
+.hbar-row:focus-visible .hbar-fill,
+.column:hover .column-fill,
+.column:focus-visible .column-fill {
+  background: var(--brand-hot);
+}
+
+.hbar-row:focus-visible,
+.column:focus-visible {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.hbar-label {
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hbar-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hbar-fill {
+  height: 18px;
+  min-width: 3px;
+  background: var(--brand);
+  /* Redondeada en la punta, recta en la base. */
+  border-radius: 0 4px 4px 0;
+  transition: width 0.6s var(--ease), background 0.15s var(--ease);
+}
+
+.hbar-value,
+.column-value {
+  font-size: 12.5px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.columns-plot {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 150px;
+  border-bottom: 1px solid var(--surface-3);
+}
+
+.column {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  outline: none;
+  border-radius: 4px 4px 0 0;
+}
+
+.column-fill {
+  width: min(24px, 60%);
+  background: var(--brand);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.6s var(--ease), background 0.15s var(--ease);
+}
+
+.column-value {
+  margin-bottom: 4px;
+}
+
+.columns-axis {
+  display: flex;
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.columns-axis span {
+  flex: 1;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.chart-tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 10px));
+  background: #0b0b0b;
+  border: 1px solid var(--surface-3);
+  border-radius: 6px;
+  padding: 7px 11px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 5;
+  box-shadow: var(--shadow);
+}
+
+.chart-tip strong {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.chart-tip span {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.chart-table {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+.chart-table summary {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.chart-table summary:hover {
+  color: var(--text-dim);
+}
+
+.chart-table table {
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-table th,
+.chart-table td {
+  text-align: left;
+  padding: 3px 18px 3px 0;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.stats-rank,
+.stats-best {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.stats-rank li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.stats-rank li:last-child {
+  border-bottom: none;
+}
+
+.stats-rank-value {
+  color: var(--text-dim);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.stats-best button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 5px 6px;
+  border-radius: 4px;
+  text-align: left;
+  transition: background 0.15s var(--ease);
+}
+
+.stats-best button:hover {
+  background: var(--surface-2);
+}
+
+.stats-best-poster {
+  width: 34px;
+  aspect-ratio: 2 / 3;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.stats-best-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stats-best-poster .poster-fallback {
+  font-size: 0;
+}
+
+.stats-best-title {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- Trailer ---------- */

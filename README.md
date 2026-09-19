@@ -11,6 +11,9 @@ Todo se guarda **solo en tu ordenador**. No hay cuentas, ni servidores, ni nada 
 - **Tráileres** dentro de la app, desde la portada o desde cualquier ficha. Arrancan al instante en silencio; el altavoz del reproductor activa el sonido.
 - **Dónde verla**: en qué plataformas está cada película en tu país (incluida en la suscripción, alquiler o compra). Los datos son de JustWatch a través de TMDB, así que necesita la clave de TMDB guardada, uses la fuente que uses.
 - **Sorpréndeme**: te propone una película al azar del catálogo, de las populares y las mejor valoradas del género que elijas, sin repetir las que ya tienes. Desde ahí puedes ver el tráiler o abrir su ficha para guardarla.
+- **Más de esta persona**: en la ficha, pulsa el director o alguien del reparto para ver sus otras películas. Debajo, «Parecidas a esta» (con clave de TMDB) o más del mismo género.
+- **Estadísticas**: películas y horas vistas, nota media, géneros y directores que más ves, décadas y tu ritmo del último año. Desde «Mi colección».
+- **Avisos de plataforma**: con la app abierta, revisa cada seis horas las películas de tu lista y te avisa con una notificación cuando alguna llega a una plataforma en tu país. Necesita la clave de TMDB.
 - Búsqueda por título con carátula, año, duración, director, reparto y sinopsis en español. **Sin cuentas ni claves**: funciona nada más instalarla.
 - Colección y lista aparte, organizadas en filas (pendientes, mejor puntuadas, por género) o en rejilla con filtros.
 - Tu propia nota del 1 al 10, marcar como vista con fecha y notas libres por película.

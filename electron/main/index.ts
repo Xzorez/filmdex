@@ -1,15 +1,24 @@
 import { BrowserWindow, app, dialog, ipcMain, session, shell } from 'electron'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import type { DiscoverQuery, Movie, NewMovie, Settings, Source } from '../../shared/types'
+import type { DiscoverQuery, Movie, NewMovie, PersonQuery, Settings, Source } from '../../shared/types'
 import * as sources from './providers'
 import * as titleCache from './providers/title-cache'
 import { SourceError } from './providers'
+import { runOnce, startAlerts, type Deps } from './alerts'
 import * as store from './store'
 import { checkForUpdates, currentState, downloadUpdate, initUpdater, installUpdate } from './updater'
 
 const isDev = !app.isPackaged
 let mainWindow: BrowserWindow | null = null
+
+/** Lo que necesitan los avisos de plataforma, conectado a los datos reales. */
+const alertDeps: Deps = {
+  getSettings: store.getSettings,
+  listMovies: store.listMovies,
+  updateMovie: store.updateMovie,
+  watchProviders: sources.watchProviders
+}
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -132,6 +141,8 @@ function registerHandlers(): void {
   handle('sources:watchProviders', async (tmdbId: number) =>
     sources.watchProviders(await store.getSettings(), tmdbId)
   )
+  handle('sources:personFilms', async (query: PersonQuery) => sources.personFilms(await store.getSettings(), query))
+  handle('sources:similar', async (tmdbId: number) => sources.similar(await store.getSettings(), tmdbId))
   handle('sources:verifyTmdb', (apiKey: string, language: string) => sources.verifyTmdbKey(apiKey, language))
 
   handle('settings:get', () => store.getSettings())
@@ -156,6 +167,8 @@ function registerHandlers(): void {
     mainWindow?.close()
   })
   handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false)
+
+  handle('alerts:check', () => (mainWindow ? runOnce(mainWindow, alertDeps) : { checked: 0, changes: 0 }))
 
   handle('updater:state', () => currentState())
   handle('updater:check', () => checkForUpdates())
@@ -215,6 +228,7 @@ if (!app.requestSingleInstanceLock()) {
 
     registerHandlers()
     createWindow()
+    if (mainWindow) startAlerts(mainWindow, alertDeps)
 
     app.on('activate', () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow()

@@ -1,4 +1,4 @@
-import type { DiscoverQuery, MovieDetails, SearchResult, Settings, Source } from '../../../shared/types'
+import type { DiscoverQuery, MovieDetails, PersonQuery, SearchResult, Settings, Source } from '../../../shared/types'
 import * as libre from './libre'
 import * as tmdb from './tmdb'
 
@@ -46,3 +46,27 @@ export async function details(settings: Settings, source: Source, sourceId: stri
 export async function discover(settings: Settings, query: DiscoverQuery): Promise<MovieDetails[]> {
   return pick(settings.source).discover(settings, query)
 }
+
+/** Filmografias ya pedidas en esta sesion. */
+const people = new Map<string, MovieDetails[]>()
+
+/**
+ * Otras peliculas de una persona de la ficha. Con clave de TMDB va por TMDB,
+ * que es rapido y no limita; sin ella, por Wikidata.
+ */
+export async function personFilms(settings: Settings, query: PersonQuery): Promise<MovieDetails[]> {
+  const useTmdb = settings.tmdbApiKey.trim() !== '' && query.from.tmdbId !== null
+  const key = [useTmdb ? 'tmdb' : 'libre', query.role, query.name, query.from.imdbId, query.from.tmdbId].join('|')
+  const cached = people.get(key)
+  if (cached) return cached
+  const films = useTmdb ? await tmdb.personFilms(settings, query) : await libre.personFilms(settings, query)
+  people.set(key, films)
+  return films
+}
+
+/** Parecidas a una pelicula. Solo TMDB tiene recomendaciones: sin clave, nada. */
+export async function similar(settings: Settings, tmdbId: number): Promise<MovieDetails[]> {
+  if (!settings.tmdbApiKey.trim()) return []
+  return tmdb.similar(settings, tmdbId)
+}
+

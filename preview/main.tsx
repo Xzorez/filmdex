@@ -158,6 +158,7 @@ const sample: Movie[] = [
     cast: ['John Travolta', 'Samuel L. Jackson', 'Uma Thurman'],
     voteAverage: 8.5,
     status: 'wishlist',
+    availability: { checkedAt: '2026-09-01T10:00:00.000Z', stream: ['Netflix'] },
     watched: false,
     rating: null,
     notes: '',
@@ -363,7 +364,7 @@ const catalog: MovieDetails[] = [
 ]
 
 let movies = [...sample]
-let settings: Settings = { source: 'libre', tmdbApiKey: 'demo', language: 'es-ES', region: 'ES', autoUpdate: true }
+let settings: Settings = { source: 'libre', tmdbApiKey: 'demo', language: 'es-ES', region: 'ES', autoUpdate: true, watchAlerts: true }
 
 const wait = <T,>(value: T): Promise<T> => new Promise((done) => setTimeout(() => done(value), 120))
 
@@ -440,6 +441,9 @@ window.filmdex = {
           : pool
       return wait(list)
     },
+    // Filmografía simulada: otras del catálogo, como si fueran suyas.
+    personFilms: () => wait(catalog.slice(2, 8)),
+    similar: () => wait(catalog.slice(4, 10)),
     watchProviders: () =>
       wait({
         link: 'https://www.themoviedb.org',
@@ -471,6 +475,11 @@ window.filmdex = {
     close: () => wait(undefined),
     isMaximized: () => wait(false),
     onMaximized: () => () => undefined
+  },
+  alerts: {
+    check: () => wait({ checked: 1, changes: 0 }),
+    onChecked: () => () => undefined,
+    onOpen: () => () => undefined
   },
   updater: {
     state: () => wait({ status: 'none' } as UpdateState),
